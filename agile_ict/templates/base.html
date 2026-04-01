@@ -1,0 +1,547 @@
+{% load static wagtailcore_tags wagtailuserbar tailwind_tags i18n %}
+
+<!DOCTYPE html>
+<html lang="{{ request.LANGUAGE_CODE }}" data-theme="light">
+    <head>
+        <meta charset="utf-8" />
+        <title>
+            {% block title %}
+            {% if page.seo_title %}{{ page.seo_title }}{% else %}{{ page.title }}{% endif %}
+            {% endblock %}
+            {% block title_suffix %}
+            {% wagtail_site as current_site %}
+            {% if current_site and current_site.site_name %}- {{ current_site.site_name }}{% endif %}
+            {% endblock %}
+        </title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+        
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.0.0/css/flag-icons.min.css"/>
+        <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+        {% tailwind_css %}
+
+        <style>
+
+            /* --- Header & Menu Stacking --- */
+            #header-wrapper {
+                z-index: 200; /* Stays above the menu overlay */
+            }
+
+            /* When menu is open, the header background must match the menu */
+            #header-wrapper.menu-active {
+                background-color: #020617 !important; /* Matches slate-950 */
+                border-color: transparent !important;
+            }
+
+            /* Ensure Logo turns white when menu is open */
+            #header-wrapper.menu-active .font-brand {
+                color: #ffffff !important;
+            }
+
+            #header-wrapper.menu-active #top-nav,
+            #header-wrapper.menu-active #main-nav {
+                background-color: transparent !important;
+                border-color: transparent !important;
+            }
+            /* --- Premium Swiss Hamburger Animation --- */
+            .agile-hamburger {
+                width: 48px;
+                height: 48px;
+                cursor: pointer;
+                /* Do not add 'display' here; Tailwind's 'flex' and 'xl:hidden' handle it */
+                z-index: 210; 
+                position: relative;
+                color: #0f172a; 
+                transition: color 0.4s ease;
+            }
+
+            /* The 'X' turns white when active */
+            .agile-hamburger.active {
+                color: #ffffff !important;
+            }
+
+            .agile-hamburger-container {
+                position: relative;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                gap: 8px; 
+                width: 32px;
+                height: 32px;
+            }
+
+            .agile-hamburger-line {
+                position: relative;
+                width: 100%;
+                height: 2px;
+                transition: all 900ms cubic-bezier(0.19, 1, 0.22, 1);
+                overflow: hidden;
+            }
+
+            .agile-hamburger-line::before,
+            .agile-hamburger-line::after {
+                position: absolute;
+                top: 0;
+                content: '';
+                width: 100%;
+                height: 100%;
+                transition: all 900ms cubic-bezier(0.19, 1, 0.22, 1);
+            }
+
+            .agile-hamburger-line::before {
+                right: 0;
+                background-color: currentColor;
+            }
+
+            .agile-hamburger-line::after {
+                left: calc(100% + 8px);
+                background-color: currentColor;
+            }
+
+            @media (hover: hover) {
+                .agile-hamburger:hover .agile-hamburger-line::before { right: calc(100% + 8px); }
+                .agile-hamburger:hover .agile-hamburger-line::after { left: 0; }
+            }
+
+            /* Staggered Delays */
+            .agile-hamburger-line:nth-child(1)::before,
+            .agile-hamburger-line:nth-child(1)::after { transition-delay: 0s; }
+            .agile-hamburger-line:nth-child(2)::before,
+            .agile-hamburger-line:nth-child(2)::after { transition-delay: 0.08s; }
+
+            /* Active State (The X) */
+            .agile-hamburger.active .agile-hamburger-line:first-of-type {
+                transform: translateY(5px) rotate(135deg);
+            }
+            .agile-hamburger.active .agile-hamburger-line:last-of-type {
+                transform: translateY(-5px) rotate(45deg);
+            }
+
+            /* Overlay Logic */
+/* --- Mobile Menu Visibility --- */
+            #mobile-menu {
+                transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.4s ease;
+                display: block !important; /* Overrides xl:hidden logic when we want it visible */
+            }
+
+            .menu-hidden {
+                transform: translateX(100%) !important;
+                opacity: 0 !important;
+                pointer-events: none !important;
+            }
+
+            #mobile-menu.menu-is-open {
+                transform: translateX(0) !important;
+                opacity: 1 !important;
+                pointer-events: auto !important;
+            }
+
+
+            /* --- Swiss Mobile Menu Refinements --- */
+            /* --- Swiss Mobile Menu Refinements --- */
+
+            /* 1. Hide links by default with a slight slide-down position */
+            #mobile-menu nav a {
+                opacity: 0;
+                transform: translateY(15px);
+                transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            }
+
+            /* 2. When menu is open, show all links (The 'Swiss' Reveal) */
+            #mobile-menu.menu-is-open nav a {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            /* 3. Stagger the appearance (0.1s, 0.2s, etc.) */
+            #mobile-menu.menu-is-open nav a:nth-of-type(1) { transition-delay: 0.1s; }
+            #mobile-menu.menu-is-open nav a:nth-of-type(2) { transition-delay: 0.2s; }
+            #mobile-menu.menu-is-open nav a:nth-of-type(3) { transition-delay: 0.3s; }
+            #mobile-menu.menu-is-open nav a:nth-of-type(4) { transition-delay: 0.4s; }
+
+            /* 4. Arrow and Hover Effects */
+            .menu-arrow {
+                transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+                opacity: 0.3;
+            }
+
+            #mobile-menu nav a:hover .menu-arrow {
+                transform: translateX(10px);
+                opacity: 1;
+                color: #3b82f6; /* agile-blue */
+            }
+
+            #mobile-menu nav a:hover .nav-text {
+                color: #3b82f6;
+                transform: translateX(5px);
+            }
+
+            .nav-text {
+                transition: all 0.3s ease;
+                display: inline-block;
+            }
+
+
+            body.lock-scroll { overflow: hidden; }
+
+            /* --- Ultra-Small Device Adjustments (Below 440px) --- */
+            @media (max-width: 440px) {
+                /* Scale down the logo image */
+                .agile-logo-img {
+                    height: 2.25rem !important; /* Approximately h-9 */
+                }
+
+                /* Scale down the brand text */
+                .agile-logo-text {
+                    font-size: 1.25rem !important; /* Approximately text-xl */
+                    letter-spacing: -0.05em !important;
+                }
+
+                /* Tighten the spacing between logo and text */
+                .agile-logo-link {
+                    gap: 0.5rem !important;
+                }
+                
+                /* Slightly reduce the size of the burger touch area if needed */
+                .agile-hamburger {
+                    width: 40px;
+                    height: 40px;
+                }
+            }
+        </style>
+
+
+        <script src="https://unpkg.com/lucide@latest"></script>
+
+        {% block extra_css %}{% endblock %}
+    </head>
+    <body class="bg-white font-sans antialiased text-slate-900">
+        {% wagtailuserbar %}
+
+        <header id="header-wrapper" class="sticky top-0 w-full bg-white z-[100] transition-transform duration-300 ease-in-out">            
+            <nav id="top-nav" class="bg-white pt-3 pb-2 relative z-[130]">
+                <div class="mx-auto flex max-w-7xl px-8 sm:px-12 items-center justify-end space-x-8 text-sm font-normal text-slate-500">
+                    <a href="#" class="hover:text-agile-blue transition-colors">{% trans "Careers" %}</a>
+                    <a href="#" class="hover:text-agile-blue transition-colors">{% trans "FAQ" %}</a>
+                    <a href="#" class="hover:text-agile-blue transition-colors">{% trans "Accessibility" %}</a>
+                    
+                    <div class="relative border-l border-slate-200 pl-8">
+                        <button id="lang-menu-btn" class="flex items-center space-x-1.5 font-bold text-slate-600 hover:text-agile-blue transition-colors outline-none cursor-pointer">
+                            <i data-lucide="globe" class="h-4 w-4"></i>
+                            <span>{{ request.LANGUAGE_CODE|upper }}</span>
+                            <i id="lang-chevron" data-lucide="chevron-down" class="h-3.5 w-3.5 transition-transform duration-200"></i>
+                        </button>
+
+                        <div id="lang-menu" class="absolute right-0 top-full mt-3 w-72 hidden z-[140]">
+                            <div class="absolute -top-1.5 right-5 w-3 h-3 bg-white rotate-45 border-t border-l border-slate-100"></div>
+                            <div class="bg-white border border-slate-100 shadow-2xl rounded-none overflow-hidden py-2 max-h-[400px] overflow-y-auto relative z-10">
+                                <p class="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">{% trans "Select Region" %}</p>
+                                
+                                <div class="px-2 mt-1">
+                                    {% get_available_languages as languages %}
+                                    {% for lang_code, lang_name in languages %}
+                                        <form action="{% url 'set_language' %}" method="post" class="block w-full mb-1 last:mb-0">
+                                            {% csrf_token %}
+                                            <input name="language" type="hidden" value="{{ lang_code }}">
+                                            <input name="next" type="hidden" value="{{ request.get_full_path }}">
+                                            <button type="submit" class="flex items-center w-full px-3 py-2 text-sm rounded-md hover:bg-slate-100 transition-colors {% if request.LANGUAGE_CODE == lang_code %}text-agile-blue font-bold bg-slate-50{% endif %}">
+                                                <span class="mr-3 text-base flex items-center justify-center leading-none">
+                                                    {% if lang_code == 'en' %}<span class="fi fi-us"></span>
+                                                    {% elif lang_code == 'fr' %}<span class="fi fi-fr"></span>
+                                                    {% elif lang_code == 'zh-hans' %}<span class="fi fi-cn"></span>
+                                                    {% elif lang_code == 'ru' %}<span class="fi fi-ru"></span>
+                                                    {% elif lang_code == 'ja' %}<span class="fi fi-jp"></span>
+                                                    {% elif lang_code == 'ko' %}<span class="fi fi-kr"></span>
+                                                    {% elif lang_code == 'pt' %}<span class="fi fi-pt"></span>
+                                                    {% endif %}
+                                                </span>
+                                                {{ lang_name }}
+                                            </button>
+                                        </form>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <nav id="main-nav" class="w-full bg-white py-2.5 border-b border-slate-200 z-[120]">                
+                <div class="mx-auto flex max-w-7xl px-8 sm:px-12 items-center justify-between">
+                    <div class="flex items-center space-x-10"> 
+                        <a href="/" class="flex items-center space-x-3 shrink-0"> 
+                            <img src="{% static 'images/logo-tran.png' %}" alt="Logo" class="h-14 w-auto"> 
+                            <span class="font-brand text-4xl tracking-tighter text-slate-900">
+                                agile<span class="font-ict text-agile-green">{% trans "I" %}</span><span class="font-ict text-agile-blue">{% trans "T" %}</span>solutions
+                            </span>
+                        </a>
+
+                        <div class="hidden xl:flex items-center text-[17px] font-medium text-slate-600">
+                            <a href="{% slugurl 'services' %}" class="px-3 py-5 hover:bg-slate-100 hover:text-agile-blue transition-colors duration-300">{% trans "Services" %}</a>
+                            <a href="{% slugurl 'about' %}" class="px-3 py-5 hover:bg-slate-100 hover:text-agile-blue transition-colors duration-300">{% trans "About" %}</a>
+                            <a href="{% slugurl 'insights' %}" class="px-3 py-5 hover:bg-slate-100 hover:text-agile-blue transition-colors duration-300">{% trans "Insights" %}</a>
+                            <a href="{% slugurl 'contact' %}" class="px-3 py-5 hover:bg-slate-100 hover:text-agile-blue transition-colors duration-300">{% trans "Contact" %}</a>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center">
+                        <form action="{% url 'search' %}" method="get" class="relative hidden xl:block">
+                            <input type="text" name="query" placeholder="{% trans 'Search' %}" 
+                                class="w-[320px] rounded-lg border border-slate-200 bg-slate-50 px-6 py-2.5 text-base font-medium focus:bg-white focus:ring-1 focus:ring-agile-blue outline-none transition-all">
+                            <button type="submit" class="absolute right-5 top-1/2 -translate-y-1/2 text-slate-500">
+                                <i data-lucide="search" class="h-5 w-5"></i>
+                            </button>
+                        </form>
+                    </div>
+
+                    <div id="menu-toggle" class="agile-hamburger flex items-center justify-center xl:hidden">
+                        <div class="agile-hamburger-container">
+                            <div class="agile-hamburger-line"></div>
+                            <div class="agile-hamburger-line"></div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </header>
+
+        <div id="mobile-menu" class="fixed inset-0 z-[140] bg-slate-950 menu-hidden xl:hidden">
+            <div class="flex flex-col h-full px-8 pt-32 pb-12">
+                <nav class="flex flex-col">
+                    <span class="text-agile-green font-black uppercase tracking-[0.3em] text-[10px] mb-8 opacity-60">
+                        {% trans "Navigation" %}
+                    </span>
+
+                    <a href="{% slugurl 'services' %}" class="group flex items-center justify-between border-b border-white/10 py-6">
+                        <div class="flex items-baseline space-x-6">
+                            <span class="text-agile-blue font-mono text-sm">01</span>
+                            <span class="nav-text text-white text-4xl md:text-6xl font-bold tracking-tighter">{% trans "Services" %}</span>
+                        </div>
+                        <i data-lucide="arrow-right" class="menu-arrow text-white w-8 h-8"></i>
+                    </a>
+
+                    <a href="{% slugurl 'about' %}" class="group flex items-center justify-between border-b border-white/10 py-6">
+                        <div class="flex items-baseline space-x-6">
+                            <span class="text-agile-blue font-mono text-sm">02</span>
+                            <span class="nav-text text-white text-4xl md:text-6xl font-bold tracking-tighter">{% trans "About" %}</span>
+                        </div>
+                        <i data-lucide="arrow-right" class="menu-arrow text-white w-8 h-8"></i>
+                    </a>
+
+                    <a href="{% slugurl 'insights' %}" class="group flex items-center justify-between border-b border-white/10 py-6">
+                        <div class="flex items-baseline space-x-6">
+                            <span class="text-agile-blue font-mono text-sm">03</span>
+                            <span class="nav-text text-white text-4xl md:text-6xl font-bold tracking-tighter">{% trans "Insights" %}</span>
+                        </div>
+                        <i data-lucide="arrow-right" class="menu-arrow text-white w-8 h-8"></i>
+                    </a>
+
+                    <a href="{% slugurl 'contact' %}" class="group flex items-center justify-between border-b border-white/10 py-6">
+                        <div class="flex items-baseline space-x-6">
+                            <span class="text-agile-blue font-mono text-sm">04</span>
+                            <span class="nav-text text-white text-4xl md:text-6xl font-bold tracking-tighter">{% trans "Contact" %}</span>
+                        </div>
+                        <i data-lucide="arrow-right" class="menu-arrow text-white w-8 h-8"></i>
+                    </a>
+                </nav>
+
+                <div class="mt-auto pt-10 border-t border-white/10">
+                    <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-2">{% trans "Contact" %}</p>
+                    <a href="mailto:info@agileict.com.pg" class="text-white font-medium hover:text-agile-blue transition-colors">info@agileict.com.pg</a>
+                </div>
+            </div>
+        </div>
+
+        <main id="main-content" class="min-h-screen">
+            {% block content %}{% endblock %}
+        </main>
+
+        <button id="back-to-top" 
+                class="fixed bottom-8 right-8 z-[90] w-12 h-12 bg-slate-900 text-white flex items-center justify-center transition-all duration-500 opacity-0 pointer-events-none translate-y-4 hover:bg-agile-blue cursor-pointer"
+                aria-label="{% trans 'Back to top' %}">
+            <i data-lucide="arrow-up" class="w-5 h-5"></i>
+        </button>
+
+        <footer class="bg-slate-900 pt-20 pb-16 z-50 relative border-t border-slate-800">
+            <div class="mx-auto max-w-7xl px-8 lg:px-12">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+                    
+                    <div class="lg:col-span-1">
+                        <a href="/" class="flex items-center space-x-3 shrink-0 group"> 
+                            <img src="{% static 'images/logo-tran.png' %}" alt="Logo" class="h-16 w-auto transition-all duration-300"> 
+                            <span class="font-brand text-3xl tracking-tighter text-white">
+                                agile<span class="font-ict text-agile-green">{% trans "I" %}</span><span class="font-ict text-agile-blue">{% trans "T" %}</span>solutions
+                            </span>
+                        </a>
+                    </div>
+    
+                    <div>
+                        <h3 class="text-white font-bold text-xl mb-6 tracking-wide">{% trans "Company" %}</h3>
+                        <ul class="space-y-4 text-white/90 text-base font-medium">
+                            <li><a href="{% slugurl 'about' %}" class="hover:text-white transition-colors duration-300">{% trans "About Us" %}</a></li>
+                            <li><a href="{% slugurl 'services' %}" class="hover:text-white transition-colors duration-300">{% trans "Our Services" %}</a></li>
+                            <li><a href="{% slugurl 'insights' %}" class="hover:text-white transition-colors duration-300">{% trans "Insights & News" %}</a></li>
+                            <li><a href="{% slugurl 'careers' %}" class="hover:text-white transition-colors duration-300">{% trans "Careers" %}</a></li>
+                        </ul>
+                    </div>
+    
+                    <div>
+                        <h3 class="text-white font-bold text-xl mb-6 tracking-wide">{% trans "Expertise" %}</h3>
+                        <ul class="space-y-4 text-white/90 text-base font-medium">
+                            <li><a href="#services" class="hover:text-white transition-colors duration-300">{% trans "Enterprise Compute" %}</a></li>
+                            <li><a href="#services" class="hover:text-white transition-colors duration-300">{% trans "ICT Consultancy" %}</a></li>
+                            <li><a href="#services" class="hover:text-white transition-colors duration-300">{% trans "Cloud Computing" %}</a></li>
+                            <li><a href="#services" class="hover:text-white transition-colors duration-300">{% trans "Network Solutions" %}</a></li>
+                        </ul>
+                    </div>
+    
+                    <div>
+                        <h3 class="text-white font-bold text-xl mb-6 tracking-wide">{% trans "Resources" %}</h3>
+                        <ul class="space-y-4 text-white/90 text-base font-medium">
+                            <li><a href="{% slugurl 'contact' %}" class="hover:text-white transition-colors duration-300">{% trans "Contact Us" %}</a></li>
+                            <li><a href="#" class="hover:text-white transition-colors duration-300">{% trans "FAQs" %}</a></li>
+                            <li><a href="mailto:info@agileict.com.pg" class="hover:text-white transition-colors duration-300">info@agileict.com.pg</a></li>
+                            <li><a href="tel:+67500000000" class="hover:text-white transition-colors duration-300">+675 000 0000</a></li>
+                        </ul>
+                    </div>
+                </div>
+    
+                <div class="border-t border-white/40 pt-8 flex flex-col md:flex-row items-center justify-between">
+                    
+                    <div class="flex items-center space-x-6 text-white/80 mb-6 md:mb-0">
+                        <a href="#" aria-label="LinkedIn" class="hover:text-white transition-colors duration-300">
+                            <svg class="w-7 h-7 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                        </a>
+                        <a href="#" aria-label="X (Twitter)" class="hover:text-white transition-colors duration-300">
+                            <svg class="w-[30px] h-[30px] fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg>
+                        </a>
+                        <a href="#" aria-label="Facebook" class="hover:text-white transition-colors duration-300">
+                            <svg class="w-9 h-9 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.101 23.691v-9.016H6.003V11.147h3.098V8.547c0-3.072 1.876-4.745 4.617-4.745 1.312 0 2.686.235 2.686.235v2.953H14.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v9.016H9.101z"/></svg>
+                        </a>
+                        <a href="#" aria-label="Instagram" class="hover:text-white transition-colors duration-300">
+                            <svg class="w-8 h-8 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                        </a>
+                        <a href="#" aria-label="YouTube" class="hover:text-white transition-colors duration-300">
+                            <svg class="w-9 h-9 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                        </a>
+                    </div>
+    
+                    <div class="flex flex-wrap justify-center md:justify-end gap-x-6 gap-y-2 text-sm text-white/90 font-medium tracking-wide">
+                        <a href="#" class="hover:text-white transition-colors duration-300">{% trans "Sitemap" %}</a>
+                        <a href="#" class="hover:text-white transition-colors duration-300">{% trans "Terms" %}</a>
+                        <a href="#" class="hover:text-white transition-colors duration-300">{% trans "Privacy Notice" %}</a>
+                        <a href="#" class="hover:text-white transition-colors duration-300">{% trans "Cookie Notice" %}</a>
+                        <span>&copy;{% now "Y" %} Agile ICT Solutions, {% trans "all rights reserved" %}</span>
+                    </div>
+                </div>
+            </div>
+        </footer>
+
+        <script>
+
+            document.addEventListener('DOMContentLoaded', function() {
+                const menuBtn = document.getElementById('menu-toggle');
+                const mobileMenu = document.getElementById('mobile-menu');
+                const header = document.getElementById('header-wrapper');
+                const body = document.body;
+
+                if (menuBtn && mobileMenu) {
+                    menuBtn.addEventListener('click', function() {
+                        const isOpen = menuBtn.classList.toggle('active');
+                        
+                        if (isOpen) {
+                            mobileMenu.classList.add('menu-is-open');
+                            mobileMenu.classList.remove('menu-hidden');
+                            header.classList.add('menu-active');
+                            body.classList.add('lock-scroll');
+                        } else {
+                            mobileMenu.classList.remove('menu-is-open');
+                            mobileMenu.classList.add('menu-hidden');
+                            header.classList.remove('menu-active');
+                            body.classList.remove('lock-scroll');
+                        }
+                    });
+                }
+            });
+
+            lucide.createIcons();
+
+            // --- Smart Sticky Header Logic ---
+            const headerWrapper = document.getElementById('header-wrapper');
+            const topNav = document.getElementById('top-nav');
+            const mainNav = document.getElementById('main-nav');
+            let lastScroll = 0;
+
+            window.addEventListener('scroll', function() {
+                const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+                const topNavHeight = topNav.offsetHeight;
+
+                // Optional: Add a subtle shadow to the main nav when you aren't at the very top of the page
+                if (currentScroll > 10) {
+                    mainNav.classList.add('shadow-sm');
+                } else {
+                    mainNav.classList.remove('shadow-sm');
+                }
+
+                // Determine scroll direction
+                if (currentScroll > lastScroll && currentScroll > topNavHeight) {
+                    // Scrolling DOWN (and past the top nav): Slide the header up to hide the top-nav
+                    headerWrapper.style.transform = `translateY(-${topNavHeight}px)`;
+                } else {
+                    // Scrolling UP: Slide the header back down to reveal the top-nav
+                    headerWrapper.style.transform = 'translateY(0)';
+                }
+                
+                // Update last scroll position (ensure it doesn't go below 0 on iOS bounce effect)
+                lastScroll = currentScroll <= 0 ? 0 : currentScroll; 
+            }, { passive: true });
+
+            // --- Language Menu Logic (Restored) ---
+            const langBtn = document.getElementById('lang-menu-btn');
+            const langMenu = document.getElementById('lang-menu');
+            const langChevron = document.getElementById('lang-chevron');
+
+            langBtn.addEventListener('click', function(event) {
+                event.stopPropagation();
+                langMenu.classList.toggle('hidden');
+                langChevron.classList.toggle('rotate-180');
+            });
+
+            document.addEventListener('click', function(event) {
+                if (!langMenu.contains(event.target) && !langBtn.contains(event.target)) {
+                    langMenu.classList.add('hidden');
+                    langChevron.classList.remove('rotate-180');
+                }
+            });
+
+            // --- Back to Top Logic ---
+            const backToTopBtn = document.getElementById('back-to-top');
+
+            window.addEventListener('scroll', function() {
+                // Appears after scrolling down 800px (roughly past the hero and first section)
+                if (window.scrollY > 800) {
+                    backToTopBtn.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
+                    backToTopBtn.classList.add('opacity-100', 'pointer-events-auto', 'translate-y-0');
+                } else {
+                    backToTopBtn.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
+                    backToTopBtn.classList.remove('opacity-100', 'pointer-events-auto', 'translate-y-0');
+                }
+            }, { passive: true });
+
+            backToTopBtn.addEventListener('click', function() {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+        </script>
+
+        {% block extra_js %}{% endblock %}
+
+
+    </body>
+</html>

@@ -1,0 +1,6 @@
+@font-face {
+    font-family: 'BrandFont'; /* You can call this whatever you want */
+    src: url('../fonts/cass.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}

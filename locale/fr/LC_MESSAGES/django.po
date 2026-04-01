@@ -1,0 +1,58 @@
+# French translation for Agile ICT Portal.
+# Copyright (C) 2026 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-03-26 14:56+1000\n"
+"PO-Revision-Date: 2026-03-26 15:10+1000\n"
+"Last-Translator: Gemini <ai@google.com>\n"
+"Language-Team: French <fr@li.org>\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: .\agile_ict\templates\base.html:40
+msgid "Careers"
+msgstr "Carrières"
+
+#: .\agile_ict\templates\base.html:41
+msgid "News"
+msgstr "Actualités"
+
+#: .\agile_ict\templates\base.html:42
+msgid "Events"
+msgstr "Événements"
+
+#: .\agile_ict\templates\base.html:54
+msgid "Select Region"
+msgstr "Sélectionner une région"
+
+#: .\agile_ict\templates\base.html:82
+msgid "ICT"
+msgstr "TIC"
+
+#: .\agile_ict\templates\base.html:87
+msgid "Services"
+msgstr "Services"
+
+#: .\agile_ict\templates\base.html:88
+msgid "About"
+msgstr "À propos"
+
+#: .\agile_ict\templates\base.html:89
+msgid "Insights"
+msgstr "Analyses"
+
+#: .\agile_ict\templates\base.html:90
+msgid "Contact"
+msgstr "Contact"
+
+#: .\agile_ict\templates\base.html:96
+msgid "Search"
+msgstr "Rechercher"

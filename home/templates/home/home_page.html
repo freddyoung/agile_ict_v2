@@ -1,0 +1,839 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags wagtailimages_tags i18n static %}
+
+{% block content %}
+
+<style>
+    /* --- Mobile Hero Adjustments --- */
+    .hero-indicator-mobile {
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .hero-tab.active-mobile .hero-indicator-mobile {
+        width: 3rem !important; /* Expands the active rectangle */
+        background-color: white !important;
+    }
+
+    /* Smooth scaling for the background images */
+    #hero-mobile-image, #hero-image {
+        will-change: transform, opacity, filter;
+    }
+
+    @media (max-width: 1024px) {
+        #hero-title {
+            text-wrap: balance; /* Prevents awkward single-word lines on mobile */
+        }
+
+            /* Ensures the 60% height is respected even if content is short */
+        section.min-h-\[50vh\] .h-\[60\%\] {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+        
+        /* Optional: Add a very slight darkening to the bottom 
+        if the image is too bright for the white text */
+        .banner-mobile-gradient {
+            background: linear-gradient(to top, rgba(2, 6, 23, 0.9) 0%, transparent 100%);
+        }
+
+        .h-\[60\%\] {
+        height: 60% !important;
+        }
+
+        /* Refines the glass look specifically for mobile backgrounds */
+        .backdrop-blur-md {
+            -webkit-backdrop-filter: blur(12px); /* Safari support */
+            backdrop-filter: blur(12px);
+        }
+        
+        /* Adds a subtle top "edge" highlight common in Swiss UI */
+        .border-t {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    }
+</style>
+
+{% if page.hero_slides %}
+{% with first_slide=page.hero_slides.0.value %}
+<section id="hero-slider" class="relative min-h-[70vh] lg:h-[600px] flex items-center overflow-hidden bg-slate-950 border-b border-slate-800">
+    
+    <div class="absolute inset-0 lg:hidden z-0 overflow-hidden">
+        {% image first_slide.image original as mobile_bg %}
+        <img id="hero-mobile-image" 
+             src="{{ mobile_bg.url }}" 
+             class="h-full w-full object-cover transition-all duration-700 opacity-40 blur-sm scale-105" 
+             alt="Background">
+        <div class="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/60 to-transparent"></div>
+    </div>
+
+    <div class="absolute -right-20 top-0 bottom-0 w-full lg:w-[60%] hidden lg:block z-10 overflow-hidden">
+        {% image first_slide.image original as hero_img %}
+        <img id="hero-image" 
+            src="{{ hero_img.url }}" 
+            alt="Agile ICT Solutions" 
+            class="h-full w-full object-contain object-right transition-all duration-700 opacity-100 blur-0">
+    </div>
+
+    <div class="absolute -top-[10%] -left-[10%] h-[400px] w-[400px] rounded-full bg-agile-blue/10 blur-[120px] z-0"></div>
+
+    <div class="relative z-20 mx-auto max-w-7xl px-8 lg:px-12 w-full grid grid-cols-1 lg:grid-cols-12 items-center">
+        <div id="hero-text-content" class="lg:col-span-8 py-16 lg:py-16 transition-all duration-500 transform opacity-100 translate-y-0">            
+            <h1 id="hero-title" class="text-4xl font-bold text-white sm:text-7xl leading-[1.1] uppercase tracking-tighter">
+                {{ first_slide.title }}
+            </h1>
+            
+            <p id="hero-subtitle" class="mt-6 text-base sm:text-lg leading-relaxed text-white/80 max-w-lg font-normal">
+                {{ first_slide.subtitle }}
+            </p>
+
+            <div class="mt-10">
+                <a id="hero-cta" href="#services" 
+                   class="font-tab group relative inline-flex items-center gap-x-3 sm:gap-x-5 bg-agile-blue px-6 py-3 sm:px-8 sm:py-4 text-base sm:text-lg font-normal text-white transition-all hover:bg-agile-blue-dark rounded-full active:scale-95 shadow-xl shadow-agile-blue/20">
+                    <span id="hero-cta-text">{{ first_slide.cta_text }}</span>
+                    <i data-lucide="arrow-right" class="h-5 w-5 sm:h-6 sm:w-6 transition-transform duration-300 -rotate-45 group-hover:rotate-0"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="absolute bottom-6 lg:bottom-0 left-0 right-0 z-30">
+        <div class="mx-auto max-w-7xl px-8 lg:px-12">
+            <div class="flex items-center lg:items-stretch gap-4 lg:gap-8">
+                {% for block in page.hero_slides %}
+                <button onclick="changeSlide({{ forloop.counter0 }})" 
+                        class="hero-tab relative group flex items-center lg:block transition-all duration-300" 
+                        data-index="{{ forloop.counter0 }}">
+                    
+                    <span class="hidden lg:inline-block py-5 text-xs font-semibold uppercase tracking-widest transition-colors duration-300 {% if forloop.first %}text-white{% else %}text-slate-500{% endif %} hover:text-white">
+                        {{ block.value.tab_name }}
+                    </span>
+
+                    <div class="lg:hidden w-8 h-1.5 rounded-full bg-white/20 overflow-hidden transition-all duration-500 group-hover:bg-white/40 {% if forloop.first %}w-12 bg-white{% endif %} hero-indicator-mobile"></div>
+
+                    <div class="tab-underline absolute bottom-0 left-0 w-full h-1 bg-agile-blue transition-opacity duration-300 hidden lg:block {% if forloop.first %}opacity-100{% else %}opacity-0{% endif %}"></div>
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endwith %}
+{% endif %}
+
+<div class="bg-white py-16 border-y-2 border-slate-200 overflow-hidden relative group">
+    
+    <div class="relative flex overflow-hidden w-full">
+        <div class="marquee-track animate-marquee flex flex-none items-center gap-20 pr-20 group-hover:[animation-play-state:paused]" style="animation-duration: 45s;">
+            <a href="https://www.broadcom.com/products/vmware" target="_blank" class="flex-none transition-all duration-500 grayscale opacity-40 hover:grayscale-0 hover:opacity-100 hover:scale-110">
+                <img src="{% static 'images/Broadcom_VMware_Logo.png' %}" alt="VMware" class="h-14 w-auto object-contain">
+            </a>
+            <a href="https://www.cisco.com" target="_blank" class="flex-none transition-all duration-500 grayscale opacity-40 hover:grayscale-0 hover:opacity-100 hover:scale-110">
+                <img src="{% static 'images/Cisco_Logo.jpg' %}" alt="Cisco" class="h-14 w-auto object-contain">
+            </a>
+            <a href="https://www.dell.com" target="_blank" class="flex-none transition-all duration-500 grayscale opacity-40 hover:grayscale-0 hover:opacity-100 hover:scale-110">
+                <img src="{% static 'images/Dell_Logo.png' %}" alt="Dell" class="h-14 w-auto object-contain">
+            </a>
+            <a href="https://www.eset.com" target="_blank" class="flex-none transition-all duration-500 grayscale opacity-40 hover:grayscale-0 hover:opacity-100 hover:scale-110">
+                <img src="{% static 'images/Eset_Logo_01.png' %}" alt="Eset" class="h-14 w-auto object-contain">
+            </a>
+            <a href="https://www.hp.com" target="_blank" class="flex-none transition-all duration-500 grayscale opacity-40 hover:grayscale-0 hover:opacity-100 hover:scale-110">
+                <img src="{% static 'images/HP_01.png' %}" alt="HP" class="h-14 w-auto object-contain">
+            </a>
+            <a href="https://www.hpe.com" target="_blank" class="flex-none transition-all duration-500 grayscale opacity-40 hover:grayscale-0 hover:opacity-100 hover:scale-110">
+                <img src="{% static 'images/HPE_01.png' %}" alt="HPE" class="h-14 w-auto object-contain">
+            </a>
+            <a href="https://www.arubanetworks.com" target="_blank" class="flex-none transition-all duration-500 grayscale opacity-40 hover:grayscale-0 hover:opacity-100 hover:scale-110">
+                <img src="{% static 'images/HPE_Aruba_Logo.png' %}" alt="Aruba" class="h-14 w-auto object-contain">
+            </a>
+            <a href="https://www.lenovo.com" target="_blank" class="flex-none transition-all duration-500 grayscale opacity-40 hover:grayscale-0 hover:opacity-100 hover:scale-110">
+                <img src="{% static 'images/Lenovo_Logo.jpg' %}" alt="Lenovo" class="h-14 w-auto object-contain">
+            </a>
+            <a href="https://www.microsoft.com" target="_blank" class="flex-none transition-all duration-500 grayscale opacity-40 hover:grayscale-0 hover:opacity-100 hover:scale-110">
+                <img src="{% static 'images/Microsoft_Logo_01.jpg' %}" alt="Microsoft" class="h-14 w-auto object-contain">
+            </a>
+            <a href="https://www.nutanix.com" target="_blank" class="flex-none transition-all duration-500 grayscale opacity-40 hover:grayscale-0 hover:opacity-100 hover:scale-110">
+                <img src="{% static 'images/Nutanix_Logo.jpg' %}" alt="Nutanix" class="h-14 w-auto object-contain">
+            </a>
+            <a href="https://www.veeam.com" target="_blank" class="flex-none transition-all duration-500 grayscale opacity-40 hover:grayscale-0 hover:opacity-100 hover:scale-110">
+                <img src="{% static 'images/Veeam_01.png' %}" alt="Veeam" class="h-14 w-auto object-contain">
+            </a>
+        </div>
+
+        <div aria-hidden="true" class="marquee-track animate-marquee flex flex-none items-center gap-20 pr-20 group-hover:[animation-play-state:paused]" style="animation-duration: 45s;">
+            <a href="https://www.broadcom.com/products/vmware" target="_blank" class="flex-none transition-all duration-500 grayscale opacity-40 hover:grayscale-0 hover:opacity-100 hover:scale-110">
+                <img src="{% static 'images/Broadcom_VMware_Logo.png' %}" alt="VMware" class="h-14 w-auto object-contain">
+            </a>
+            <a href="https://www.cisco.com" target="_blank" class="flex-none transition-all duration-500 grayscale opacity-40 hover:grayscale-0 hover:opacity-100 hover:scale-110">
+                <img src="{% static 'images/Cisco_Logo.jpg' %}" alt="Cisco" class="h-14 w-auto object-contain">
+            </a>
+            <a href="https://www.dell.com" target="_blank" class="flex-none transition-all duration-500 grayscale opacity-40 hover:grayscale-0 hover:opacity-100 hover:scale-110">
+                <img src="{% static 'images/Dell_Logo.png' %}" alt="Dell" class="h-14 w-auto object-contain">
+            </a>
+            <a href="https://www.eset.com" target="_blank" class="flex-none transition-all duration-500 grayscale opacity-40 hover:grayscale-0 hover:opacity-100 hover:scale-110">
+                <img src="{% static 'images/Eset_Logo_01.png' %}" alt="Eset" class="h-14 w-auto object-contain">
+            </a>
+            <a href="https://www.hp.com" target="_blank" class="flex-none transition-all duration-500 grayscale opacity-40 hover:grayscale-0 hover:opacity-100 hover:scale-110">
+                <img src="{% static 'images/HP_01.png' %}" alt="HP" class="h-14 w-auto object-contain">
+            </a>
+            <a href="https://www.hpe.com" target="_blank" class="flex-none transition-all duration-500 grayscale opacity-40 hover:grayscale-0 hover:opacity-100 hover:scale-110">
+                <img src="{% static 'images/HPE_01.png' %}" alt="HPE" class="h-14 w-auto object-contain">
+            </a>
+            <a href="https://www.arubanetworks.com" target="_blank" class="flex-none transition-all duration-500 grayscale opacity-40 hover:grayscale-0 hover:opacity-100 hover:scale-110">
+                <img src="{% static 'images/HPE_Aruba_Logo.png' %}" alt="Aruba" class="h-14 w-auto object-contain">
+            </a>
+            <a href="https://www.lenovo.com" target="_blank" class="flex-none transition-all duration-500 grayscale opacity-40 hover:grayscale-0 hover:opacity-100 hover:scale-110">
+                <img src="{% static 'images/Lenovo_Logo.jpg' %}" alt="Lenovo" class="h-14 w-auto object-contain">
+            </a>
+            <a href="https://www.microsoft.com" target="_blank" class="flex-none transition-all duration-500 grayscale opacity-40 hover:grayscale-0 hover:opacity-100 hover:scale-110">
+                <img src="{% static 'images/Microsoft_Logo_01.jpg' %}" alt="Microsoft" class="h-14 w-auto object-contain">
+            </a>
+            <a href="https://www.nutanix.com" target="_blank" class="flex-none transition-all duration-500 grayscale opacity-40 hover:grayscale-0 hover:opacity-100 hover:scale-110">
+                <img src="{% static 'images/Nutanix_Logo.jpg' %}" alt="Nutanix" class="h-14 w-auto object-contain">
+            </a>
+            <a href="https://www.veeam.com" target="_blank" class="flex-none transition-all duration-500 grayscale opacity-40 hover:grayscale-0 hover:opacity-100 hover:scale-110">
+                <img src="{% static 'images/Veeam_01.png' %}" alt="Veeam" class="h-14 w-auto object-contain">
+            </a>
+        </div>
+    </div>
+
+    <div class="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
+    <div class="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
+
+</div>
+
+<section class="bg-white py-10 lg:py-14">
+    <div class="mx-auto max-w-7xl px-8 lg:px-12">
+        
+        <h2 class="max-w-5xl text-2xl sm:text-3xl lg:text-4xl font-medium text-slate-800 leading-[1.5] lg:leading-[1.4] tracking-tight text-left">
+            {{ page.animated_headline_intro }} 
+            
+            <span class="group cursor-default inline-block whitespace-nowrap -m-2 p-2 rounded-lg">
+                {{ page.animated_word_1 }}
+                <span class="relative inline-block font-normal text-agile-blue px-1 ml-1">
+                    <span class="absolute inset-y-1 left-0 w-full bg-agile-green/30 origin-left scale-x-0 transition-transform duration-500 ease-out group-hover:scale-x-100 rounded-sm"></span>
+                    <span class="relative z-10">{{ page.animated_subword_1 }}</span>
+                </span>
+            </span><span class="mr-1">,</span>
+            
+            <span class="group cursor-default inline-block whitespace-nowrap -m-2 p-2 rounded-lg">
+                {{ page.animated_word_2 }}
+                <span class="relative inline-block font-normal text-agile-blue px-1 ml-1">
+                    <span class="absolute inset-y-1 left-0 w-full bg-agile-green/30 origin-left scale-x-0 transition-transform duration-500 ease-out group-hover:scale-x-100 rounded-sm"></span>
+                    <span class="relative z-10">{{ page.animated_subword_2 }}</span>
+                </span>
+            </span><span class="mr-1">,</span>
+            
+            {{ page.animated_conjunction }} 
+            
+            <span class="group cursor-default inline-block whitespace-nowrap -m-2 p-2 rounded-lg">
+                {{ page.animated_word_3 }}
+                <span class="relative inline-block font-normal text-agile-blue px-1 ml-1">
+                    <span class="absolute inset-y-1 left-0 w-full bg-agile-green/30 origin-left scale-x-0 transition-transform duration-500 ease-out group-hover:scale-x-100 rounded-sm"></span>
+                    <span class="relative z-10">{{ page.animated_subword_3 }}</span>
+                </span>
+            </span> 
+            
+            <span>{{ page.animated_headline_outro }}</span>
+        </h2>
+
+    </div>
+</section>
+
+{% load wagtailcore_tags wagtailimages_tags %} 
+{% if page.banner_image %}
+    {% image page.banner_image original as bg_image %}
+{% endif %}
+
+<section class="relative min-h-[60vh] lg:min-h-[65vh] flex items-end justify-center bg-cover bg-center lg:bg-fixed bg-no-repeat" 
+         style="background-image: url('{% if bg_image %}{{ bg_image.url }}{% endif %}');">
+    
+    <div class="absolute inset-0 bg-slate-950/20 lg:bg-slate-900/30"></div>
+
+    <div class="relative z-10 w-full h-[60%] lg:h-auto lg:max-w-7xl lg:px-12">
+        
+        <div class="w-full h-full flex flex-col justify-center bg-slate-900/60 backdrop-blur-md p-8 lg:p-10 lg:shadow-2xl border-t border-white/10 lg:border-none">
+            
+            <h2 class="text-3xl sm:text-4xl lg:text-5xl text-white uppercase font-bold tracking-tighter mb-4">
+                {{ page.banner_title }}
+            </h2>
+            
+            <p class="text-base lg:text-lg text-white/90 mb-8 max-w-4xl font-medium leading-relaxed">
+                {{ page.banner_description }}
+            </p>
+            
+            {% if page.banner_cta_link %}
+            <a href="{% pageurl page.banner_cta_link %}" class="group inline-flex items-center gap-x-3 text-sm font-bold text-white transition-all hover:text-agile-blue active:scale-95">
+                <span class="uppercase tracking-widest">{{ page.banner_cta_text }}</span>
+                <i data-lucide="arrow-right" class="h-5 w-5 transition-transform duration-300 -rotate-45 group-hover:translate-x-1 group-hover:rotate-0"></i>
+            </a>
+            {% endif %}
+
+        </div>
+    </div>
+</section>
+
+<section id="services" class="relative bg-white py-24 sm:py-32 border-b border-slate-200 overflow-hidden">
+    
+    <div class="absolute top-1/2 left-[-15%] -translate-y-1/4 w-[150%] h-full z-0 pointer-events-none opacity-[0.2] select-none">
+        <img src="{% static 'images/logo-gs.png' %}" 
+             alt="" 
+             class="w-full h-full object-contain object-left">
+    </div>
+
+    <div class="relative z-10 mx-auto max-w-7xl px-8 lg:px-12">
+        
+        <div class="mb-20 max-w-4xl">
+            <h2 class="text-5xl tracking-tighter text-slate-900 sm:text-6xl font-black uppercase leading-[0.9] mb-6">
+                {{ page.expertise_title|safe }}
+            </h2>
+            <p class="text-slate-500 font-medium text-xl lg:text-2xl leading-relaxed">
+                {{ page.expertise_subtitle }}
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
+            
+            {% for block in page.services %}
+                
+                {# SLOT 5: Image Card (Row 3, Col 1) - Injected BEFORE Service 4 #}
+                {% if forloop.counter == 4 %}
+                    <a href="{% if page.promo_card_link %}{% pageurl page.promo_card_link %}{% else %}#{% endif %}" class="group relative overflow-hidden bg-slate-900 aspect-[4/3] md:aspect-auto min-h-[150px] flex items-end p-10 lg:p-14 z-20">
+                        <img src="{% static 'images/vivid.jpg' %}" alt="IT Services" class="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 group-hover:scale-105 transition-all duration-[1500ms] ease-in-out">
+                        <div class="relative z-10 flex items-center gap-4">
+                            <span class="text-white font-black uppercase tracking-[0.2em] text-sm relative pb-4">
+                                {{ page.promo_card_text }}
+                                <span class="absolute bottom-0 left-0 w-full h-[4px] bg-white transition-transform duration-700 ease-[cubic-bezier(0.65,0,0.35,1)] scale-x-0 group-hover:scale-x-100 origin-left"></span>
+                            </span>
+                            <i data-lucide="arrow-right" class="w-5 h-5 text-white transition-transform duration-500 group-hover:translate-x-2"></i>
+                        </div>
+                    </a>
+                {% endif %}
+
+                {# SERVICE CARD #}
+                <div class="group bg-slate-50 p-10 lg:p-14 relative overflow-hidden cursor-default transition-colors duration-500 hover:bg-slate-900 z-20">
+                    <div class="w-16 h-2 bg-slate-900 mb-10 transition-all duration-700 group-hover:bg-agile-blue group-hover:scale-x-125 origin-left"></div>
+                    
+                    <h3 class="text-3xl lg:text-4xl font-black text-slate-900 uppercase tracking-tighter mb-8 leading-[0.9] transition-colors duration-500 group-hover:text-white">
+                        {{ block.value.title }}
+                    </h3>
+
+                    <div class="relative h-44 lg:h-48 overflow-hidden">
+                        <div class="absolute inset-0 z-10 transition-all duration-1000 ease-[cubic-bezier(0.65,0,0.35,1)] group-hover:-translate-y-full group-hover:opacity-0 group-hover:pointer-events-none">
+                            <p class="text-slate-500 font-medium text-lg lg:text-2xl leading-tight pr-6 transition-colors duration-500 group-hover:text-white">
+                                {{ block.value.short_benefit }}
+                            </p>
+                        </div>
+
+                        <div class="absolute inset-0 translate-y-full opacity-0 z-20 transition-all duration-1000 ease-[cubic-bezier(0.65,0,0.35,1)] group-hover:translate-y-0 group-hover:opacity-100 flex flex-col justify-between items-start pb-4">
+                            <p class="text-slate-400 text-base lg:text-lg leading-relaxed pr-6 transition-colors duration-500 group-hover:text-slate-200">
+                                {{ block.value.description }}
+                            </p>
+
+                            {% slugurl 'services' as services_url %}
+                            <a href="{{ services_url }}?service={{ forloop.counter }}" class="relative z-30 mt-6 flex items-center gap-4 group/btn pointer-events-auto">
+                                <span class="text-white font-black uppercase tracking-[0.2em] text-sm relative pb-4">
+                                    {{ page.service_card_cta }}
+                                    <span class="absolute bottom-0 left-0 w-full h-[4px] bg-white transition-transform duration-700 delay-700 ease-[cubic-bezier(0.65,0,0.35,1)] scale-x-0 group-hover:scale-x-100 origin-left"></span>
+                                </span>
+                                <i data-lucide="arrow-right" class="w-5 h-5 text-white transition-transform duration-500 group-hover/btn:translate-x-2"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                {# SLOT 2: Image Card (Row 1, Col 2) - Injected AFTER Service 1 #}
+                {% if forloop.counter == 1 %}
+                    <a href="{% if page.promo_card_link %}{% pageurl page.promo_card_link %}{% else %}#{% endif %}" class="group relative overflow-hidden bg-slate-900 aspect-[4/3] md:aspect-auto min-h-[150px] flex items-end p-10 lg:p-14 z-20">
+                        <img src="{% static 'images/chrome-2.jpg' %}" alt="IT Methodology" class="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 group-hover:scale-105 transition-all duration-[1500ms] ease-in-out">
+                        <div class="relative z-10 flex items-center gap-4">
+                            <span class="text-white font-black uppercase tracking-[0.2em] text-sm relative pb-4">
+                                {{ page.promo_card_text }}
+                                <span class="absolute bottom-0 left-0 w-full h-[4px] bg-white transition-transform duration-700 ease-[cubic-bezier(0.65,0,0.35,1)] scale-x-0 group-hover:scale-x-100 origin-left"></span>
+                            </span>
+                            <i data-lucide="arrow-right" class="w-5 h-5 text-white transition-transform duration-500 group-hover:translate-x-2"></i>
+                        </div>
+                    </a>
+                {% endif %}
+
+                {# SLOT 10: Image Card (Row 5, Col 2) - Injected AFTER Service 7 #}
+                {% if forloop.counter == 7 %}
+                    <a href="{% if page.promo_card_link %}{% pageurl page.promo_card_link %}{% else %}#{% endif %}" class="group relative overflow-hidden bg-slate-900 aspect-[4/3] md:aspect-auto min-h-[150px] flex items-end p-10 lg:p-14 z-20">
+                        <img src="{% static 'images/service-blur.jpg' %}" alt="PNG Infrastructure" class="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 group-hover:scale-105 transition-all duration-[1500ms] ease-in-out">
+                        <div class="relative z-10 flex items-center gap-4">
+                            <span class="text-white font-black uppercase tracking-[0.2em] text-sm relative pb-4">
+                                {{ page.promo_card_text }}
+                                <span class="absolute bottom-0 left-0 w-full h-[4px] bg-white transition-transform duration-700 ease-[cubic-bezier(0.65,0,0.35,1)] scale-x-0 group-hover:scale-x-100 origin-left"></span>
+                            </span>
+                            <i data-lucide="arrow-right" class="w-5 h-5 text-white transition-transform duration-500 group-hover:translate-x-2"></i>
+                        </div>
+                    </a>
+                {% endif %}
+
+            {% endfor %}
+
+        </div>
+    </div>
+</section>
+
+<section class="relative min-h-[60vh] lg:min-h-[65vh] flex items-end justify-center bg-cover bg-center lg:bg-fixed bg-no-repeat" 
+         style="background-image: url('{% static 'images/contact-test.jpg' %}');">
+    
+    <div class="absolute inset-0 bg-slate-950/20 lg:bg-slate-900/30"></div>
+
+    <div class="relative z-10 w-full h-[60%] lg:h-auto lg:max-w-7xl lg:px-12">
+        
+        <div class="w-full h-full flex flex-col justify-center bg-slate-900/60 backdrop-blur-md p-8 lg:p-10 lg:shadow-2xl border-t border-white/10 lg:border-none">
+            
+            <h2 class="text-3xl sm:text-4xl lg:text-5xl text-white uppercase font-bold tracking-tighter mb-4">
+                {{ page.bottom_cta_title }}
+            </h2>
+            
+            <p class="text-base lg:text-lg text-white/90 mb-8 max-w-4xl font-medium leading-relaxed">
+                {{ page.bottom_cta_description }}
+            </p>
+            
+            {% if page.bottom_cta_link %}
+            <a href="{% pageurl page.bottom_cta_link %}" class="group inline-flex items-center gap-x-3 text-sm font-bold text-white transition-all hover:text-agile-blue active:scale-95">
+                <span class="uppercase tracking-widest">{{ page.bottom_cta_button_text }}</span>
+                <i data-lucide="arrow-right" class="h-5 w-5 transition-transform duration-300 -rotate-45 group-hover:translate-x-1 group-hover:rotate-0"></i>
+            </a>
+            {% endif %}
+
+        </div>
+    </div>
+</section>
+
+<section id="faqs" class="relative bg-white pt-18 lg:pt-18 border-b border-slate-200 overflow-hidden" x-data="{ active: 1 }">
+    <div class="mx-auto max-w-7xl px-8 lg:px-12">
+        
+        <div class="mb-20 max-w-4xl">
+            <h2 class="text-5xl tracking-tighter text-slate-900 sm:text-6xl font-black uppercase leading-[0.9]">
+                {{ page.faq_section_title }}
+            </h2>
+        </div>
+
+        <div class="border-t border-slate-200">
+            
+            {% for block in page.faqs %}
+            <div @click="active = active === {{ forloop.counter }} ? null : {{ forloop.counter }}" class="group grid grid-cols-1 lg:grid-cols-12 border-b border-slate-200 cursor-pointer">
+                
+                <div class="hidden lg:flex lg:col-span-4 border-r border-slate-200 items-center justify-center relative overflow-hidden bg-white pr-16">
+                    <span class="text-[24rem] font-black leading-none text-transparent [-webkit-text-stroke:3px_#0f172a] opacity-[0.08] transform -rotate-90 transition-all duration-500 group-hover:opacity-20">
+                        {% cycle 'Q' 'A' 'F' %}
+                    </span>
+                </div>
+
+                <div class="lg:col-span-8 transition-colors duration-500 group-hover:bg-agile-blue"
+                     :class="active === {{ forloop.counter }} ? 'bg-agile-blue' : 'bg-white'">
+                    
+                    <div class="w-full py-12 flex items-start justify-between text-left px-6 lg:px-12 pointer-events-auto">
+                        <div class="flex items-baseline gap-8">
+                            <span class="text-sm font-black text-slate-400 tabular-nums tracking-widest transition-colors duration-500 group-hover:text-white" :class="active === {{ forloop.counter }} ? 'text-white' : ''">
+                                {{ forloop.counter|stringformat:"02d" }}
+                            </span>
+                            <h3 class="text-2xl lg:text-3xl font-black text-slate-900 uppercase tracking-tighter transition-colors duration-500 group-hover:text-white max-w-md xl:max-w-xl" :class="active === {{ forloop.counter }} ? 'text-white' : ''">
+                                {{ block.value.question }}
+                            </h3>
+                        </div>
+                        <div class="relative w-8 h-8 mt-2 flex items-center justify-center shrink-0 pr-4">
+                            <span class="absolute w-full h-[3px] transition-all duration-500 ease-[cubic-bezier(0.65,0,0.35,1)]" :class="active === {{ forloop.counter }} ? 'bg-white rotate-0' : 'bg-slate-900 group-hover:bg-white rotate-90'"></span>
+                            <span class="absolute w-full h-[3px] transition-colors duration-500" :class="active === {{ forloop.counter }} ? 'bg-white' : 'bg-slate-900 group-hover:bg-white'"></span>
+                        </div>
+                    </div>
+
+                    <div class="grid transition-all duration-1000 ease-[cubic-bezier(0.65,0,0.35,1)]"
+                         :class="active === {{ forloop.counter }} ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'">
+                        <div class="overflow-hidden">
+                            <div class="pb-16 pl-24 lg:pl-32 pr-12 lg:pr-32 transition-all duration-1000 ease-[cubic-bezier(0.65,0,0.35,1)]"
+                                 :class="active === {{ forloop.counter }} ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-8'">
+                                <p class="text-slate-600 text-lg lg:text-xl leading-relaxed max-w-2xl transition-colors duration-500 group-hover:text-white/90" :class="active === {{ forloop.counter }} ? 'text-white/90' : ''">
+                                    {{ block.value.answer }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            <div class="pt-16 pb-12 flex justify-start lg:justify-end pr-6 lg:pr-12">
+                <a href="{% if page.faq_cta_link %}{% pageurl page.faq_cta_link %}{% else %}#{% endif %}" class="group inline-flex items-center gap-x-6 text-slate-900 transition-all">
+                    <span class="relative uppercase tracking-[0.2em] font-black text-sm pb-4">
+                        {{ page.faq_cta_text }}
+                        <span class="absolute bottom-0 left-0 w-full h-[4px] bg-agile-blue transition-transform duration-700 ease-[cubic-bezier(0.65,0,0.35,1)] scale-x-0 group-hover:scale-x-100 origin-left"></span>
+                    </span>
+                    <i data-lucide="arrow-right" class="h-6 w-6 transition-all duration-500 -rotate-45 group-hover:rotate-0 group-hover:translate-x-2 group-hover:text-agile-blue"></i>
+                </a>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+{% if page.testimonials %}
+<section id="testimonials" 
+         class="relative pt-32 pb-32 lg:pb-32"
+         x-data="{
+            active: 0, 
+            total: {{ page.testimonials|length }},
+            next() {
+                this.active = (this.active + 1) % this.total;
+            },
+            prev() {
+                this.active = (this.active - 1 + this.total) % this.total;
+            }
+         }">
+    
+    <div class="absolute top-0 left-0 w-full h-[60%] bg-cover bg-center"
+         style="background-image: url('{% static 'images/test-bg.jpg' %}');">
+         <div class="absolute inset-0 bg-white/10 backdrop-blur-sm z-0"></div>
+    </div>
+    
+    <div class="relative z-10 mx-auto max-w-7xl px-8 lg:px-12">
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 overflow-hidden min-h-[480px]">
+            
+            <div class="lg:col-span-5 relative bg-slate-900 overflow-hidden flex flex-col justify-between p-10 lg:p-12">
+                
+                <div class="absolute inset-0 z-0 overflow-hidden">
+                    <div class="flex h-full w-full transition-transform duration-700 ease-[cubic-bezier(0.65,0,0.35,1)]"
+                         :style="`transform: translateX(-${active * 100}%)`">
+                        
+                        {% for block in page.testimonials %}
+                            <div class="h-full w-full shrink-0">
+                                {% image block.value.image original class="h-full w-full object-cover grayscale opacity-40" %}
+                            </div>
+                        {% endfor %}
+                        
+                    </div>
+                </div>
+
+                <div class="relative z-10">
+                    <h2 class="text-xs font-black uppercase tracking-[0.4em] text-agile-green mb-4">{{ page.testimonial_subheading }}</h2>
+                    <h3 class="text-5xl font-black uppercase tracking-tighter text-white leading-[0.85]">
+                        {{ page.testimonial_heading_line_1 }}<br/>{{ page.testimonial_heading_line_2 }}
+                    </h3>
+                </div>
+
+                <div class="relative z-10 mt-12">
+                    <div class="inline-flex items-center bg-white rounded-full p-1 gap-2 shadow-xl">
+                        <button @click="prev()" 
+                                class="flex items-center justify-center w-14 h-14 rounded-full hover:bg-slate-100 transition-colors duration-300">
+                            <i data-lucide="chevron-left" class="w-6 h-6 text-slate-900"></i>
+                        </button>
+
+                        <div class="flex items-center gap-3 px-2">
+                            <template x-for="i in total" :key="i">
+                                <button @click="active = i - 1" 
+                                        class="h-1.5 rounded-full transition-all duration-500"
+                                        :class="active === i - 1 ? 'w-8 bg-agile-blue' : 'w-1.5 bg-slate-200'"></button>
+                            </template>
+                        </div>
+
+                        <button @click="next()" 
+                                class="flex items-center justify-center w-14 h-14 rounded-full hover:bg-slate-100 transition-colors duration-300">
+                            <i data-lucide="chevron-right" class="w-6 h-6 text-slate-900"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-7 bg-agile-blue p-12 lg:p-20 relative flex items-center overflow-hidden">
+                
+                <span class="absolute top-8 right-12 text-[12rem] font-black text-white/5 leading-none select-none pointer-events-none">"</span>
+
+                <div class="relative w-full overflow-hidden">
+                    <div class="flex w-full transition-transform duration-700 ease-[cubic-bezier(0.65,0,0.35,1)]"
+                         :style="`transform: translateX(-${active * 100}%)`">
+                        
+                        {% for block in page.testimonials %}
+                            <div class="w-full shrink-0 flex flex-col justify-center space-y-8 pr-8">
+                                <p class="text-2xl lg:text-3xl font-medium text-white leading-tight">
+                                    "{{ block.value.quote }}"
+                                </p>
+                                <div class="flex items-center gap-4">
+                                    <div class="h-[1px] w-12 bg-white/30"></div>
+                                    <p class="text-xs font-black uppercase tracking-[0.2em] text-white">
+                                        {{ block.value.author_name }} 
+                                        {% if block.value.author_company %}
+                                            — <span class="text-white/50">{{ block.value.author_company }}</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        {% endfor %}
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+{% endif %}
+
+
+<section id="insights" class="bg-white pb-24 lg:pb-32 border-b border-slate-200">
+    <div class="mx-auto max-w-7xl px-8 lg:px-12">
+
+        <div class="flex flex-col lg:flex-row lg:items-end justify-between mb-16 gap-8">
+            <div class="max-w-3xl">
+                <h2 class="text-xs font-black uppercase tracking-[0.4em] text-agile-green mb-4">
+                    {{ page.insights_subheading }}
+                </h2>
+                <h3 class="text-5xl tracking-tighter text-slate-900 sm:text-6xl font-black uppercase leading-[0.9]">
+                    {{ page.insights_heading }}
+                </h3>
+            </div>
+            
+            <a href="{% if page.insights_cta_link %}{% pageurl page.insights_cta_link %}{% else %}#{% endif %}" class="group inline-flex items-center gap-x-6 text-slate-900 w-fit shrink-0">
+                <span class="relative uppercase tracking-[0.2em] font-black text-sm pb-2">
+                    {{ page.insights_cta_text }}
+                    <span class="absolute bottom-0 left-0 w-full h-[3px] bg-agile-blue transition-transform duration-700 ease-[cubic-bezier(0.65,0,0.35,1)] scale-x-0 group-hover:scale-x-100 origin-left"></span>
+                </span>
+                <i data-lucide="arrow-right" class="w-5 h-5 transition-transform duration-500 group-hover:translate-x-2"></i>
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 border-t border-l border-slate-200">
+
+            {% for block in page.insights %}
+            <a href="{% if block.value.link %}{% pageurl block.value.link %}{% else %}#{% endif %}" class="group relative block p-10 lg:p-14 border-r border-b border-slate-200 bg-white hover:bg-slate-900 transition-colors duration-500">
+                <div class="flex justify-between items-start mb-16">
+                    <span class="text-sm font-black text-slate-400 tabular-nums tracking-widest group-hover:text-slate-500 transition-colors duration-500">
+                        {{ forloop.counter|stringformat:"02d" }}
+                    </span>
+                    <i data-lucide="arrow-up-right" class="w-6 h-6 text-slate-300 group-hover:text-white transition-all duration-500 group-hover:translate-x-1 group-hover:-translate-y-1"></i>
+                </div>
+                <h4 class="text-2xl lg:text-3xl font-black text-slate-900 uppercase tracking-tighter mb-6 leading-tight group-hover:text-white transition-colors duration-500">
+                    {{ block.value.title }}
+                </h4>
+                <p class="text-slate-500 text-lg leading-relaxed group-hover:text-slate-400 transition-colors duration-500">
+                    {{ block.value.description }}
+                </p>
+            </a>
+            {% endfor %}
+
+        </div>
+    </div>
+</section>
+
+<section id="careers" class="bg-slate-900 w-full overflow-hidden border-b border-slate-800">
+    <div class="mx-auto max-w-7xl px-8 lg:px-12 flex flex-col lg:flex-row items-center">
+
+        <div class="w-full lg:w-1/2">
+            {% if page.careers_image %}
+                {% image page.careers_image original class="w-full h-auto object-contain" alt=page.careers_heading %}
+            {% else %}
+                <img src="{% static 'images/racer.png' %}" 
+                     alt="Drive your career" 
+                     class="w-full h-auto object-contain">
+            {% endif %}
+        </div>
+
+        <div class="w-full lg:w-1/2 flex flex-col justify-center py-8 lg:py-12 lg:pl-20">
+            
+            <h2 class="text-4xl tracking-tighter text-white sm:text-5xl font-black uppercase leading-[0.9] mb-8 max-w-lg">
+                {{ page.careers_heading }}
+            </h2>
+
+            <a href="{% if page.careers_cta_link %}{% pageurl page.careers_cta_link %}{% else %}#{% endif %}" class="group inline-flex items-center gap-x-6 w-fit">
+                <span class="relative text-white font-black uppercase tracking-[0.2em] text-sm pb-4">
+                    {{ page.careers_cta_text }}
+                    <span class="absolute bottom-0 left-0 w-full h-[4px] bg-agile-blue transition-transform duration-700 ease-[cubic-bezier(0.65,0,0.35,1)] scale-x-0 group-hover:scale-x-100 origin-left"></span>
+                </span>
+                <i data-lucide="arrow-right" class="w-6 h-6 text-white transition-all duration-500 group-hover:translate-x-2"></i>
+            </a>
+
+        </div>
+
+    </div>
+</section>
+
+<section id="cta" class="bg-white py-24 lg:py-32"> 
+    <div class="mx-auto max-w-7xl px-8 lg:px-12">
+        <div class="bg-gray-200 shadow-xl">
+            <div class="grid grid-cols-1 lg:grid-cols-12 border border-slate-200">
+                
+                <div class="lg:col-span-7 xl:col-span-8 bg-slate-900 p-12 lg:p-20 flex flex-col justify-between min-h-[400px] lg:min-h-[500px]">
+                    <p class="text-agile-green font-black tracking-[0.4em] uppercase text-xs mb-12">
+                        {{ page.final_cta_subheading }}
+                    </p>
+                    
+                    <div>
+                        <img src="{% static 'images/logo-tran-2.png' %}" alt="Agile ICT" class="h-16 lg:h-32 w-auto mb-10 brightness-0 invert">
+                        
+                        <h2 class="text-4xl lg:text-7xl font-black text-white uppercase tracking-tighter leading-[0.9] max-w-2xl">
+                            {{ page.final_cta_heading }}
+                        </h2>
+                    </div>
+                </div>
+
+                <a href="{% if page.final_cta_link %}{% pageurl page.final_cta_link %}{% else %}#{% endif %}" class="lg:col-span-5 xl:col-span-4 group relative bg-white hover:bg-agile-blue p-12 lg:p-20 flex flex-col justify-between border-t lg:border-t-0 lg:border-l border-slate-200 transition-colors duration-500 overflow-hidden cursor-pointer">
+                    
+                    <div class="flex justify-end">
+                        <i data-lucide="arrow-up-right" class="w-16 h-16 text-slate-900 group-hover:text-white transition-all duration-500 transform group-hover:translate-x-2 group-hover:-translate-y-2"></i>
+                    </div>
+
+                    <div class="mt-20">
+                        <h3 class="text-4xl lg:text-5xl font-black text-slate-900 group-hover:text-white uppercase tracking-tighter leading-[0.9] transition-colors duration-500">
+                            {{ page.final_cta_box_heading }}
+                        </h3>
+                        
+                        <div class="mt-8 flex items-center gap-4 opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 delay-100">
+                            <div class="h-[2px] w-8 bg-white"></div>
+                            <span class="text-white font-black uppercase tracking-[0.2em] text-xs">
+                                {{ page.final_cta_box_hover_text }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                </a>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<script>
+// 1. Data Prep
+    const slides = [
+        {% for block in page.hero_slides %}
+            {% image block.value.image original as img %}
+            {
+                title: "{{ block.value.title|escapejs }}",
+                subtitle: "{{ block.value.subtitle|escapejs }}",
+                cta: "{{ block.value.cta_text|escapejs }}",
+                image: "{{ img.url|escapejs }}"
+            }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    let currentSlide = 0;
+    let slideTimer;
+    const SLIDE_DURATION = 10000;
+
+    // 2. Global Selectors
+    const titleEl = document.getElementById('hero-title');
+    const subtitleEl = document.getElementById('hero-subtitle');
+    const ctaTextEl = document.getElementById('hero-cta-text');
+    const desktopImg = document.getElementById('hero-image');
+    const mobileImg = document.getElementById('hero-mobile-image');
+    const textContainer = document.getElementById('hero-text-content');
+    const tabs = document.querySelectorAll('.hero-tab');
+
+    function nextSlide() {
+        if (slides.length <= 1) return;
+        let nextIndex = (currentSlide + 1) % slides.length;
+        changeSlide(nextIndex);
+    }
+
+    function resetTimer() {
+        clearInterval(slideTimer);
+        if (slides.length > 1) {
+            slideTimer = setInterval(nextSlide, SLIDE_DURATION);
+        }
+    }
+
+    function changeSlide(index) {
+        if (index === currentSlide) return;
+        
+        const isMobile = window.innerWidth < 1024;
+
+        // --- Phase 1: Tab Highlighting (Instant) ---
+        tabs.forEach((tab, i) => {
+            const isCurrent = i === index;
+            const text = tab.querySelector('span');
+            const underline = tab.querySelector('.tab-underline');
+            const mobileRect = tab.querySelector('.hero-indicator-mobile');
+
+            if (text) {
+                text.classList.toggle('text-white', isCurrent);
+                text.classList.toggle('text-slate-500', !isCurrent);
+            }
+            if (underline) {
+                underline.classList.toggle('opacity-100', isCurrent);
+                underline.classList.toggle('opacity-0', !isCurrent);
+            }
+            if (mobileRect) {
+                if (isCurrent) {
+                    mobileRect.classList.add('w-12', 'bg-white');
+                    mobileRect.classList.remove('w-8', 'bg-white/20');
+                } else {
+                    mobileRect.classList.remove('w-12', 'bg-white');
+                    mobileRect.classList.add('w-8', 'bg-white/20');
+                }
+            }
+        });
+
+        // --- Phase 2: Out-Transition ---
+        // Text always fades and moves
+        textContainer.classList.replace('opacity-100', 'opacity-0');
+        if (!isMobile) textContainer.classList.replace('translate-y-0', 'translate-y-8');
+
+        // Desktop Image: Blur and Scale only (No opacity-0)
+        if (desktopImg) {
+            desktopImg.classList.replace('blur-0', 'blur-xl');
+            if (!isMobile) desktopImg.classList.add('scale-95');
+        }
+
+        // Mobile Background: Keeps fade + blur for ambient effect
+        if (mobileImg) {
+            mobileImg.classList.replace('opacity-100', 'opacity-0');
+            mobileImg.classList.replace('blur-0', 'blur-xl');
+        }
+
+        setTimeout(() => {
+            // --- Phase 3: Content Swap ---
+            titleEl.textContent = slides[index].title;
+            subtitleEl.textContent = slides[index].subtitle;
+            ctaTextEl.textContent = slides[index].cta;
+            
+            if (desktopImg) desktopImg.src = slides[index].image;
+            if (mobileImg) mobileImg.src = slides[index].image;
+
+            if (!isMobile) {
+                textContainer.classList.remove('translate-y-8');
+                textContainer.classList.add('-translate-y-8');
+            }
+
+            setTimeout(() => {
+                // --- Phase 4: In-Transition ---
+                textContainer.classList.replace('opacity-0', 'opacity-100');
+                
+                if (!isMobile) {
+                    textContainer.classList.remove('-translate-y-8');
+                    textContainer.classList.add('translate-y-0');
+                }
+                
+                // Restore Desktop Image (Blur and Scale only)
+                if (desktopImg) {
+                    desktopImg.classList.replace('blur-xl', 'blur-0');
+                    if (!isMobile) desktopImg.classList.remove('scale-95');
+                }
+
+                // Restore Mobile Background
+                if (mobileImg) {
+                    mobileImg.classList.replace('opacity-0', 'opacity-100');
+                    mobileImg.classList.replace('blur-xl', 'blur-0');
+                }
+            }, 50);
+
+            currentSlide = index;
+            resetTimer();
+        }, 500);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        resetTimer();
+        lucide.createIcons();
+    });
+</script>
+<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+<script>
+  lucide.createIcons();
+</script>
+{% endblock %}

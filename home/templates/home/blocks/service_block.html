@@ -1,0 +1,26 @@
+<div class="group relative flex flex-col justify-between rounded-3xl border border-slate-100 bg-white p-8 transition-all duration-500 hover:-translate-y-2 hover:border-agile-blue/20 hover:shadow-[0_20px_50px_rgba(0,112,192,0.1)]">
+    
+    <div class="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-agile-blue/5 blur-2xl opacity-0 transition-opacity duration-500 group-hover:opacity-100"></div>
+
+    <div>
+        <div class="mb-8 inline-flex h-14 w-14 items-center justify-center rounded-2xl transition-transform duration-500 group-hover:scale-110
+            {% if self.accent_color == 'green' %} bg-agile-green/10 text-agile-green 
+            {% elif self.accent_color == 'slate' %} bg-agile-slate/10 text-agile-slate 
+            {% else %} bg-agile-blue/10 text-agile-blue {% endif %}">
+            <i data-lucide="{{ self.icon }}" class="h-7 w-7"></i>
+        </div>
+
+        <h3 class="text-xl font-bold tracking-tight text-slate-900 group-hover:text-agile-blue transition-colors">
+            {{ self.title }}
+        </h3>
+        
+        <p class="mt-4 text-sm leading-relaxed text-slate-500">
+            {{ self.description }}
+        </p>
+    </div>
+
+    <div class="mt-10 flex items-center text-xs font-black uppercase tracking-[0.2em] text-slate-400 group-hover:text-agile-blue transition-colors">
+        <span>Explore Detail</span>
+        <i data-lucide="chevron-right" class="ml-1 h-3 w-3 transition-transform duration-300 group-hover:translate-x-1"></i>
+    </div>
+</div>

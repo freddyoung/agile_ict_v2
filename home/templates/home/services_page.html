@@ -1,0 +1,430 @@
+{% extends "base.html" %}
+{% load static i18n wagtailcore_tags wagtailimages_tags %}
+
+{% block content %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+
+<div x-data="servicesController()" class="bg-white min-h-screen relative" x-init="initController()">
+
+    <section class="relative bg-slate-950 pt-32 pb-20 lg:pt-24 lg:pb-16 overflow-hidden border-b border-slate-900 z-10">
+        <div class="relative mx-auto max-w-7xl px-8 lg:px-12">
+            <div class="flex items-center gap-4 mb-10">
+                <span class="h-[2px] w-8 bg-agile-green"></span>
+                <span class="text-agile-green font-black uppercase tracking-[0.5em] text-[10px]">Our Services</span>
+            </div>
+            <h1 class="text-6xl sm:text-8xl lg:text-9xl font-black tracking-tighter text-white uppercase leading-[0.8] mb-12">
+                {{ page.hero_line_1 }}<br/>
+                <span class="text-transparent [-webkit-text-stroke:2px_white]">{{ page.hero_line_2_outline }}</span><br/>
+                {{ page.hero_line_3 }}<span class="text-agile-blue animate-console-blink">_</span>
+            </h1>
+        </div>
+    </section>
+
+    <div id="animation-viewport" class="relative w-full bg-white grid grid-cols-1 grid-rows-1 items-start overflow-hidden">
+        
+        <div id="ghost-card" 
+             class="absolute pointer-events-none z-[100] flex flex-col justify-end overflow-hidden shadow-lg shadow-slate-50"
+             style="opacity: 0; top: 0; left: 0; width: 0; height: 0; background-color: #ffffff;">
+            
+            <img id="ghost-img" :src="selected?.image" class="absolute inset-0 w-full h-full object-cover">
+            <div id="ghost-gradient" class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent opacity-0"></div>
+
+            <div class="relative z-20 p-10 lg:p-14 w-full" id="ghost-content">
+                <h3 id="ghost-title" class="font-black uppercase tracking-tighter leading-[0.85] mb-4 text-slate-900" style="font-size: 24px;"></h3>
+                <p id="ghost-short" class="text-slate-500 font-medium leading-tight" style="font-size: 18px;"></p>
+            </div>
+        </div>
+
+        <div id="grid-view" 
+             class="col-start-1 row-start-1 w-full transition-transform duration-1000 ease-in-out z-10"
+             :class="view === 'detail' ? '-translate-x-full' : 'translate-x-0'">
+             
+            <div class="mx-auto max-w-full lg:max-w-7xl border-l border-slate-200 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3" id="grid-container">
+                <template x-for="service in services" :key="service.id">
+                    <div @click="selectService(service, $event)" 
+                         :data-service-id="service.id"
+                         class="service-card group relative aspect-square border-r border-b border-slate-200 bg-white cursor-pointer overflow-hidden transition-colors duration-500 hover:bg-slate-50"
+                         :class="{ 'opacity-0': selectedId === service.id && isAnimating }"> 
+                        <div class="h-full w-full p-10 lg:p-14 flex flex-col justify-between relative z-10 transition-transform duration-700"
+                             :class="(isAnimating && selectedId !== service.id) ? '-translate-y-full opacity-0' : 'translate-y-0 opacity-100'">
+                            
+                            <div class="flex justify-between items-start">
+                                <span class="text-xs font-mono font-bold text-slate-300 group-hover:text-agile-blue">/ 0<span x-text="service.id"></span></span>
+                                <i :data-lucide="service.icon" class="w-8 h-8 text-slate-900 group-hover:scale-110 transition-transform"></i>
+                            </div>
+
+                            <div>
+                                <h3 class="text-2xl lg:text-3xl font-black text-slate-900 uppercase tracking-tighter leading-[0.9] mb-4" x-text="service.title"></h3>
+                                <p class="text-slate-500 font-medium text-lg leading-tight" x-text="service.short"></p>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
+                <a href="/contact" class="lg:col-span-2 aspect-[2/1] bg-agile-blue p-10 lg:p-14 flex flex-col justify-between border-r border-b border-slate-200 overflow-hidden cursor-pointer hover:bg-slate-900 transition-colors duration-500 block">
+                    <div class="h-full flex flex-col justify-between transition-all duration-700"
+                         :class="isAnimating && selectedId !== 'cta' ? '-translate-y-full opacity-0' : 'translate-y-0 opacity-100'">
+                        <h3 class="text-4xl lg:text-6xl font-black text-white uppercase tracking-tighter leading-[0.85]">Ready to<br/>Initiate?</h3>
+                        <div class="flex items-center gap-6 text-white font-black uppercase tracking-widest text-sm">
+                            <span>Consultation</span>
+                            <i data-lucide="arrow-right" class="w-6 h-6"></i>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <div id="detail-view" 
+             class="col-start-1 row-start-1 w-full transition-transform duration-1000 ease-in-out z-20 flex justify-center px-4 lg:px-12 xl:px-32 h-full"
+             :class="view === 'detail' ? 'translate-x-0' : 'translate-x-full'"
+             style="visibility: hidden;"> 
+             
+             <div class="w-full max-w-7xl relative bg-white flex flex-col h-full">
+                
+                <section id="final-hero" class="relative bg-transparent min-h-[450px] lg:min-h-[550px] w-full pointer-events-none opacity-0"></section>
+
+                <div class="relative flex-grow flex flex-col">
+                    
+                    <div class="absolute top-0 right-full pr-8 hidden lg:flex h-[550px] items-center z-30">
+                        <button id="detail-back-btn" @click="goBack()" 
+                                class="text-slate-200 hover:text-agile-green transition-transform duration-500 hover:-translate-x-4 cursor-pointer focus:outline-none group"
+                                style="opacity: 0; transform: translateX(30px);">
+                            <svg viewBox="0 0 24 24" class="w-40 h-40 transition-colors duration-500 text-slate-200 group-hover:text-agile-green" fill="none" stroke="currentColor" stroke-width="0.3" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="10">
+                                <polyline points="15,4 5,12 15,20" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="border-l border-r border-b border-slate-200 bg-white flex-grow flex flex-col">
+                        <div class="grid grid-cols-1 lg:grid-cols-12 flex-grow">
+                            <div class="lg:col-span-8 p-10 lg:p-20 border-r border-slate-200">
+                                <div class="flex items-center gap-4 mb-10">
+                                    <span class="h-[2px] w-12 bg-agile-blue"></span>
+                                    <span class="text-slate-400 font-black uppercase tracking-[0.3em] text-[10px]">Technical Scope</span>
+                                </div>
+                                <p class="text-2xl lg:text-4xl font-medium text-slate-800 leading-tight mb-12" x-text="selected?.desc"></p>
+                                
+                                <div class="mb-12 space-y-6">
+                                    <p class="text-slate-500 leading-relaxed text-lg" x-text="selected?.process1"></p>
+                                    <p class="text-slate-500 leading-relaxed text-lg" x-text="selected?.process2"></p>
+                                </div>
+
+                                <div class="flex flex-wrap gap-3">
+                                    <template x-for="tag in selected?.tags">
+                                        <span class="px-5 py-2 border border-slate-200 text-slate-500 text-[10px] font-black uppercase tracking-widest" x-text="tag"></span>
+                                    </template>
+                                </div>
+                            </div>
+                            <div class="lg:col-span-4 bg-slate-50 p-10 lg:p-14 flex flex-col justify-start">
+                                <div class="aspect-square w-full mb-auto bg-slate-200 overflow-hidden">
+                                    <img :src="selected?.secondaryImage" class="w-full h-full object-cover" alt="">
+                                </div>
+                                
+                                <a href="/contact" class="group flex items-center justify-between bg-slate-950 p-8 text-white mt-12 hover:bg-agile-blue transition-all duration-700">
+                                    <span class="font-black uppercase tracking-widest text-xs">Get free quote</span>
+                                    <i data-lucide="arrow-right" class="w-6 h-6 transition-transform group-hover:translate-x-2"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @keyframes console-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+    .animate-console-blink { animation: console-blink 1s step-end infinite; }
+    .aspect-square { aspect-ratio: 1 / 1; }
+    @media (max-width: 1024px) { .aspect-square { aspect-ratio: auto; min-height: 320px; } }
+</style>
+
+<script>
+    function servicesController() {
+        return {
+            view: 'grid', 
+            selectedId: null,
+            selected: null,
+            isAnimating: false,
+            cardRect: null,
+            // Injecting Wagtail data into the JS array
+            services: [
+                {% for block in page.services %}
+                { 
+                    id: {{ forloop.counter }}, 
+                    title: '{{ block.value.title|escapejs }}', 
+                    short: '{{ block.value.short_benefit|escapejs }}', 
+                    desc: '{{ block.value.description|escapejs }}', 
+                    process1: '{{ block.value.process_1|escapejs }}',
+                    process2: '{{ block.value.process_2|escapejs }}',
+                    icon: '{{ block.value.icon }}', 
+                    image: '{% image block.value.detail_image fill-1920x1080 as img %}{{ img.url }}', 
+                    secondaryImage: '{% image block.value.secondary_image fill-800x800 as s_img %}{{ s_img.url }}',
+                    tags: [{% for tag in block.value.tags %}'{{ tag|escapejs }}'{% if not forloop.last %}, {% endif %}{% endfor %}] 
+                }{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ],
+
+            initController() {
+                this.$watch('view', value => {
+                    document.getElementById('detail-view').style.visibility = value === 'detail' ? 'visible' : 'hidden';
+                });
+                
+                if(window.lucide) lucide.createIcons();
+                
+                // Deep Linking Logic: Check for ?service=X in the URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const serviceId = urlParams.get('service');
+                
+                if (serviceId) {
+                    const targetService = this.services.find(s => s.id == serviceId);
+                    if (targetService) {
+                        // Wait for DOM and Lucide to be ready, then trigger the click
+                        setTimeout(() => {
+                            const card = document.querySelector(`[data-service-id="${serviceId}"]`);
+                            if (card) {
+                                // Simulate event for the selectService method
+                                const fakeEvent = { currentTarget: card };
+                                this.selectService(targetService, fakeEvent);
+                            }
+                        }, 500);
+                    }
+                }
+
+                window.addEventListener('popstate', (e) => {
+                    if (this.view === 'detail') {
+                        this.goBack(false); 
+                    }
+                });
+            },
+
+            async selectService(service, event) {
+                if (this.isAnimating) return;
+                this.isAnimating = true;
+                
+                this.selectedId = service.id;
+                this.selected = service;
+                
+                window.history.pushState({ view: 'detail', id: service.id }, '');
+
+                const isLg = window.innerWidth >= 1024;
+                const cardEl = event.currentTarget;
+                const viewport = document.getElementById('animation-viewport');
+                const ghost = document.getElementById('ghost-card');
+                
+                const viewportRect = viewport.getBoundingClientRect();
+                const rawCardRect = cardEl.getBoundingClientRect();
+                
+                this.cardRect = {
+                    top: rawCardRect.top - viewportRect.top,
+                    left: rawCardRect.left - viewportRect.left,
+                    width: rawCardRect.width,
+                    height: rawCardRect.height,
+                    absoluteTop: rawCardRect.top + window.scrollY 
+                };
+
+                document.getElementById('ghost-title').innerText = service.title;
+                document.getElementById('ghost-short').innerText = service.short;
+                
+                anime.set(ghost, {
+                    top: this.cardRect.top,
+                    left: this.cardRect.left,
+                    width: this.cardRect.width,
+                    height: this.cardRect.height,
+                    backgroundColor: '#ffffff',
+                    boxShadow: '0px 10px 25px 0px rgba(0, 0, 0, 0.02)',
+
+                    opacity: 1
+                });
+                anime.set(['#ghost-title', '#ghost-short'], { color: '#0f172a' }); 
+                anime.set('#ghost-title', { fontSize: isLg ? '30px' : '24px' }); 
+                anime.set('#ghost-short', { fontSize: '18px' });
+                anime.set(['#ghost-img', '#ghost-gradient'], { opacity: 0 });
+                anime.set('#detail-back-btn', { opacity: 0, translateX: '30px', pointerEvents: 'none' });
+
+                await new Promise(r => setTimeout(r, 50)); // Tiny buffer for DOM
+
+                const tl = anime.timeline({ easing: 'easeInOutQuint' });
+
+                // Smooth horizontal expansion
+                tl.add({
+                    targets: ghost,
+                    left: 0,
+                    width: viewportRect.width,
+                    backgroundColor: '#020617',
+                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.05)',
+                    duration: 600
+                });
+
+                tl.add({
+                    targets: ['#ghost-title', '#ghost-short'],
+                    color: '#ffffff',
+                    duration: 300
+                }, '-=400');
+
+                // Trigger details to slide in exactly as the vertical move is halfway done
+                setTimeout(() => {
+                    this.view = 'detail';
+                }, 400);
+
+                const targetHeight = isLg ? 550 : 450;
+                
+                anime({
+                    targets: ['html', 'body'],
+                    scrollTop: viewportRect.top + window.scrollY - 50,
+                    duration: 800,
+                    easing: 'easeInOutQuad'
+                });
+
+                // Smooth vertical expansion
+                tl.add({
+                    targets: ghost,
+                    top: 0,
+                    height: targetHeight,
+                    duration: 800
+                }, '-=300'); // Starts slightly before horizontal finishes
+
+                tl.add({
+                    targets: '#ghost-title',
+                    fontSize: isLg ? '96px' : '48px',
+                    duration: 800
+                }, '-=800');
+
+                tl.add({
+                    targets: '#ghost-short',
+                    fontSize: isLg ? '30px' : '20px',
+                    color: '#38bdf8',
+                    duration: 800
+                }, '-=800');
+
+                tl.add({
+                    targets: ['#ghost-img', '#ghost-gradient'],
+                    opacity: 1,
+                    duration: 600
+                }, '-=600');
+
+                // Slide and fade in the giant chevron
+                tl.add({
+                    targets: '#detail-back-btn',
+                    translateX: ['30px', '0px'],
+                    opacity: 1,
+                    duration: 800,
+                    easing: 'easeOutQuart'
+                }, '-=400');
+
+                await tl.finished;
+
+                document.getElementById('detail-back-btn').style.pointerEvents = 'auto';
+                
+                // Hide the grid view so the page height shrinks to fit the details, pulling the footer up
+                document.getElementById('grid-view').style.display = 'none';
+                
+                this.isAnimating = false;
+            },
+
+            async goBack(doHistory = true) {
+                if (this.isAnimating) return;
+                this.isAnimating = true;
+
+                const isLg = window.innerWidth >= 1024;
+                const ghost = document.getElementById('ghost-card');
+                const viewport = document.getElementById('animation-viewport');
+                const viewportRect = viewport.getBoundingClientRect(); // FIX: Defined viewportRect
+                const mainHeader = document.getElementById('main-page-header');
+                
+                document.getElementById('detail-back-btn').style.pointerEvents = 'none';
+
+                // FIX: Safely check if mainHeader exists before manipulating it
+                if (mainHeader) {
+                    mainHeader.style.display = 'block';
+                    const headerHeight = mainHeader.getBoundingClientRect().height;
+                    viewport.style.marginTop = -headerHeight + 'px';
+                }
+
+                // Restore grid view to DOM so it can slide back in
+                const gridView = document.getElementById('grid-view');
+                gridView.style.display = 'block';
+                // Force a browser reflow so the transition animation doesn't snap
+                void gridView.offsetWidth;
+
+                // 1. Hide Chevron quickly
+                anime({
+                    targets: '#detail-back-btn',
+                    translateX: '30px',
+                    opacity: 0,
+                    duration: 400,
+                    easing: 'easeInQuad'
+                });
+
+                // Trigger CSS slide out immediately
+                this.view = 'grid';
+                
+                const tl = anime.timeline({ easing: 'easeInOutQuint' });
+
+                const targetScroll = this.cardRect.absoluteTop - (window.innerHeight / 2) + (this.cardRect.height / 2);
+                
+                anime({
+                    targets: ['html', 'body'],
+                    scrollTop: targetScroll,
+                    duration: 1000,
+                    easing: 'easeInOutQuad'
+                });
+
+                // Start shrinking down with a tiny delay so it tracks the eye while details slide right
+                tl.add({
+                    targets: ghost,
+                    top: this.cardRect.absoluteTop - (viewportRect.top + window.scrollY), 
+                    height: this.cardRect.height,
+                    duration: 800
+                }, '+=100');
+
+                tl.add({
+                    targets: '#ghost-title',
+                    fontSize: isLg ? '30px' : '24px',
+                    duration: 800
+                }, '-=800');
+
+                tl.add({
+                    targets: '#ghost-short',
+                    fontSize: '18px',
+                    color: '#64748b',
+                    duration: 800
+                }, '-=800');
+
+                tl.add({
+                    targets: ['#ghost-img', '#ghost-gradient'],
+                    opacity: 0,
+                    duration: 500
+                }, '-=800');
+
+                tl.add({
+                    targets: ghost,
+                    left: this.cardRect.left,
+                    width: this.cardRect.width,
+                    backgroundColor: '#ffffff',
+                    boxShadow: '0 0px 0px 0px rgba(0, 0, 0, 0)',
+                    duration: 600
+                }, '-=300');
+
+                tl.add({
+                    targets: ['#ghost-title', '#ghost-short'],
+                    color: '#0f172a',
+                    duration: 300
+                }, '-=400');
+
+                await tl.finished;
+
+                this.selectedId = null;
+                anime.set(ghost, { opacity: 0 });
+                this.isAnimating = false;
+                
+                if (doHistory) {
+                    window.history.back();
+                }
+            }
+        }
+    }
+</script>
+{% endblock %}

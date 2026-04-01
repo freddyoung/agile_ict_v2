@@ -1,0 +1,58 @@
+# Japanese translation for Agile ICT Portal.
+# Copyright (C) 2026 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-03-26 14:55+1000\n"
+"PO-Revision-Date: 2026-03-26 15:00+1000\n"
+"Last-Translator: Gemini <ai@google.com>\n"
+"Language-Team: Japanese <ja@li.org>\n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: .\agile_ict\templates\base.html:40
+msgid "Careers"
+msgstr "採用情報"
+
+#: .\agile_ict\templates\base.html:41
+msgid "News"
+msgstr "ニュース"
+
+#: .\agile_ict\templates\base.html:42
+msgid "Events"
+msgstr "イベント"
+
+#: .\agile_ict\templates\base.html:54
+msgid "Select Region"
+msgstr "地域を選択"
+
+#: .\agile_ict\templates\base.html:82
+msgid "ICT"
+msgstr "ICT"
+
+#: .\agile_ict\templates\base.html:87
+msgid "Services"
+msgstr "サービス"
+
+#: .\agile_ict\templates\base.html:88
+msgid "About"
+msgstr "会社情報"
+
+#: .\agile_ict\templates\base.html:89
+msgid "Insights"
+msgstr "インサイト"
+
+#: .\agile_ict\templates\base.html:90
+msgid "Contact"
+msgstr "お問い合わせ"
+
+#: .\agile_ict\templates\base.html:96
+msgid "Search"
+msgstr "検索"

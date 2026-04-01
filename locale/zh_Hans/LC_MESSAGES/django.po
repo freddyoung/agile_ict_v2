@@ -1,0 +1,58 @@
+# Chinese translation for Agile ICT Portal.
+# Copyright (C) 2026 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-03-26 14:58+1000\n"
+"PO-Revision-Date: 2026-03-26 15:40+1000\n"
+"Last-Translator: Gemini <ai@google.com>\n"
+"Language-Team: Chinese <zh@li.org>\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: .\agile_ict\templates\base.html:40
+msgid "Careers"
+msgstr "人才招聘"
+
+#: .\agile_ict\templates\base.html:41
+msgid "News"
+msgstr "新闻资讯"
+
+#: .\agile_ict\templates\base.html:42
+msgid "Events"
+msgstr "活动"
+
+#: .\agile_ict\templates\base.html:54
+msgid "Select Region"
+msgstr "选择区域"
+
+#: .\agile_ict\templates\base.html:82
+msgid "ICT"
+msgstr "ICT"
+
+#: .\agile_ict\templates\base.html:87
+msgid "Services"
+msgstr "服务"
+
+#: .\agile_ict\templates\base.html:88
+msgid "About"
+msgstr "关于我们"
+
+#: .\agile_ict\templates\base.html:89
+msgid "Insights"
+msgstr "深度洞察"
+
+#: .\agile_ict\templates\base.html:90
+msgid "Contact"
+msgstr "联系我们"
+
+#: .\agile_ict\templates\base.html:96
+msgid "Search"
+msgstr "搜索"

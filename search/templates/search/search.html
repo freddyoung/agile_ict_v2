@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% load static wagtailcore_tags %}
+
+{% block title %}Search{% endblock %}
+
+{% block content %}
+
+<div class="sticky top-0 z-[90] w-full bg-[#005592] py-2.5 shadow-md">
+    <div class="mx-auto flex max-w-7xl items-center justify-between px-8 sm:px-12">
+        <h2 class="text-xl font-bold text-white uppercase tracking-widest">Search Results</h2>
+        
+        <a href="#contact" class="flex items-center rounded-lg border border-white/60 bg-transparent px-5 py-2 text-sm font-bold text-white hover:bg-white/10 hover:border-white transition-colors">
+            Contact 
+            <i data-lucide="message-circle" class="w-4 h-4 ml-2"></i>
+        </a>
+    </div>
+</div>
+
+<div class="mx-auto max-w-4xl px-8 py-8 sm:py-12">
+
+    {% if search_results %}
+        
+        <div class="mb-10 relative">
+            <div id="ai-loading-state" class="transition-opacity duration-500">
+                <div class="flex items-center space-x-3 text-agile-blue font-bold mb-3">
+                    <i data-lucide="loader-circle" class="w-5 h-5 animate-spin"></i>
+                    <span>Generating AI response. One moment, please...</span>
+                </div>
+                <div class="space-y-3 animate-pulse">
+                    <div class="h-4 bg-slate-200 rounded w-full"></div>
+                    <div class="h-4 bg-slate-200 rounded w-5/6"></div>
+                </div>
+            </div>
+
+            <div id="ai-loaded-state" class="hidden opacity-0 transition-opacity duration-500">
+                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+                    AI-generated answer. Please verify critical facts.
+                </p>
+                <p class="text-slate-800 leading-relaxed text-lg">
+                    Based on the site content, <span class="font-black">{{ search_query }}</span> is a core component of our integrated ICT infrastructure services 
+                    <a href="#" class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-slate-100 hover:bg-agile-blue hover:text-white text-slate-500 transition-colors mx-1 align-middle" title="Source 1">
+                        <i data-lucide="link" class="w-3 h-3"></i>
+                    </a>. 
+                    We leverage industry-leading vendors to deploy these solutions across secure enterprise networks.
+                </p>
+            </div>
+        </div>
+
+        <div class="mb-12">
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Related Queries</h3>
+            <div class="flex flex-wrap gap-3">
+                <a href="?query={{ search_query }}+services" class="px-4 py-2 bg-slate-50 border border-slate-200 rounded-full text-sm font-medium text-slate-600 hover:border-agile-blue hover:text-agile-blue transition-colors flex items-center">
+                    <i data-lucide="search" class="w-3.5 h-3.5 mr-2"></i> {{ search_query }} services
+                </a>
+                <a href="?query={{ search_query }}+support" class="px-4 py-2 bg-slate-50 border border-slate-200 rounded-full text-sm font-medium text-slate-600 hover:border-agile-blue hover:text-agile-blue transition-colors flex items-center">
+                    <i data-lucide="search" class="w-3.5 h-3.5 mr-2"></i> {{ search_query }} support
+                </a>
+            </div>
+        </div>
+
+        <div class="mb-8 border-b border-slate-200 pb-4">
+            <h1 class="text-3xl font-black tracking-tight text-slate-900 mb-1">Search Results</h1>
+            <p class="text-slate-500 font-medium">Yielded {{ search_results.paginator.count }} results for "<span class="text-agile-blue font-bold">{{ search_query }}</span>"</p>
+        </div>
+
+        <div class="space-y-10">
+            {% for result in search_results %}
+                <div class="group">
+                    <a href="{% pageurl result %}" class="text-2xl font-bold text-slate-900 group-hover:text-agile-blue transition-colors inline-block mb-1">
+                        {{ result.title }}
+                    </a>
+                    
+                    <div class="flex items-center text-sm text-agile-green font-medium mb-2 space-x-2">
+                        <span>{{ request.get_host }}</span>
+                        <i data-lucide="chevron-right" class="w-3 h-3 text-slate-300"></i>
+                        <span class="truncate">{% pageurl result %}</span>
+                    </div>
+                    
+                    <p class="search-snippet text-slate-600 leading-relaxed">
+                        {{ result.context_snippet }}
+                    </p>
+                </div>
+            {% endfor %}
+        </div>
+
+        {% if search_results.paginator.num_pages > 1 %}
+            <div class="mt-16 border-t border-slate-100 pt-8 flex items-center justify-between">
+                {% if search_results.has_previous %}
+                    <a href="?query={{ search_query|urlencode }}&amp;page={{ search_results.previous_page_number }}" class="flex items-center px-4 py-2 text-sm font-medium text-slate-500 hover:text-agile-blue transition-colors">
+                        <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i> Previous
+                    </a>
+                {% else %}
+                    <span class="flex items-center px-4 py-2 text-sm font-medium text-slate-300 cursor-not-allowed">
+                        <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i> Previous
+                    </span>
+                {% endif %}
+
+                <div class="hidden sm:flex items-center space-x-1">
+                    {% for page_num in search_results.paginator.page_range %}
+                        {% if search_results.number == page_num %}
+                            <span class="w-10 h-10 flex items-center justify-center rounded-lg bg-slate-50 border border-slate-200 text-agile-blue font-bold text-sm">
+                                {{ page_num }}
+                            </span>
+                        {% else %}
+                            <a href="?query={{ search_query|urlencode }}&amp;page={{ page_num }}" class="w-10 h-10 flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-50 hover:text-agile-blue font-medium text-sm transition-colors">
+                                {{ page_num }}
+                            </a>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                {% if search_results.has_next %}
+                    <a href="?query={{ search_query|urlencode }}&amp;page={{ search_results.next_page_number }}" class="flex items-center px-4 py-2 text-sm font-medium text-slate-500 hover:text-agile-blue transition-colors">
+                        Next <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>
+                    </a>
+                {% else %}
+                    <span class="flex items-center px-4 py-2 text-sm font-medium text-slate-300 cursor-not-allowed">
+                        Next <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>
+                    </span>
+                {% endif %}
+            </div>
+        {% endif %}
+
+    {% else %}
+        <div class="mb-8 border-b border-slate-200 pb-4">
+            <h1 class="text-3xl font-black tracking-tight text-slate-900 mb-1">Search Results</h1>
+            <p class="text-slate-500 font-medium mb-8">Yielded 0 results</p>
+            
+            <div>
+                <h2 class="text-2xl font-bold text-slate-900 mb-2">Sorry, no results found.</h2>
+                <p class="text-slate-600 text-lg">We couldn't find anything matching your query. Please check your spelling or try refining your search terms.</p>
+            </div>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const loadingState = document.getElementById('ai-loading-state');
+        const loadedState = document.getElementById('ai-loaded-state');
+        const aiTextContainer = loadedState ? loadedState.querySelector('p.text-slate-800') : null;
+        
+        const rawQuery = "{{ search_query|escapejs }}";
+
+        // FIX: Let Django inject the correct language-prefixed URL!
+        const apiUrl = "{% url 'ai_search_summary' %}?query=" + encodeURIComponent(rawQuery);
+
+        // 1. AI Fetch Logic
+        if (loadingState && loadedState && rawQuery) {
+            fetch(apiUrl)
+                .then(response => {
+                    // Added a check to catch 404/500 errors gracefully
+                    if (!response.ok) throw new Error("API route not found or server error");
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.summary) {
+                        // Inject the AI text
+                        aiTextContainer.innerHTML = data.summary;
+                        
+                        // Execute the sleek fade transition
+                        loadingState.classList.add('opacity-0');
+                        setTimeout(() => {
+                            loadingState.classList.add('hidden');
+                            loadedState.classList.remove('hidden');
+                            setTimeout(() => {
+                                loadedState.classList.remove('opacity-0');
+                            }, 50);
+                        }, 500);
+                    } else {
+                        // Hide if the backend returns no summary
+                        loadingState.closest('.mb-10').style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error("AI Generation failed:", error);
+                    loadingState.closest('.mb-10').style.display = 'none';
+                });
+        } else if (loadingState) {
+            loadingState.closest('.mb-10').style.display = 'none';
+        }
+
+        // 2. Search Term Highlighting
+        if (rawQuery) {
+            const safeQuery = rawQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(`(${safeQuery})`, 'gi');
+            
+            const snippets = document.querySelectorAll('.search-snippet');
+            snippets.forEach(snippet => {
+                snippet.innerHTML = snippet.innerHTML.replace(regex, '<strong class="font-black text-slate-900">$1</strong>');
+            });
+        }
+    });
+</script>
+{% endblock %}
