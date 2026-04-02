@@ -4,28 +4,4 @@ venv/
 __pycache__/
 db.sqlite3
 media/
-# Do NOT ignore the whole static folder, just the heavy images inside it
-agile_ict/static/images/* ```
-
-#### Step B: Disable Branch Protection (On the Web)
-1.  Go to your repo on **GitHub.com**.
-2.  Click **Settings** (top tab).
-3.  Click **Branches** (left sidebar).
-4.  If you see a "Branch protection rule" for `main`, click **Delete** or **Edit**.
-5.  If you edit it, scroll down and check **"Allow force pushes."** Click Save.
-
-
-
-#### Step C: The "Clean" Push
-Now, let's run the command in PowerShell using the "Token-in-URL" method which bypasses Windows' confused memory.
-
-```powershell
-# 1. Clean out any old remote settings
-git remote remove origin
-
-# 2. Add it back fresh
-git remote add origin https://github.com/freddyoung/agile_ict.git
-
-# 3. Force push using the token directly in the URL
-# (Replace [TOKEN] with your ghp_... string)
-git push https://freddyoung:[TOKEN]@github.com/freddyoung/agile_ict.git main --force
+agile_ict/static/images/
