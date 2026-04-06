@@ -1,7 +1,7 @@
-node_modules/
-venv/
-.venv/
-__pycache__/
-db.sqlite3
-media/
-agile_ict/static/images/
+#node_modules/
+#venv/
+#.venv/
+#__pycache__/
+#db.sqlite3
+#media/
+#agile_ict/static/images/
